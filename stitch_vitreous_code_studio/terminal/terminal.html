@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Nova Code - Terminal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "error-container": "#93000a",
+                      "tertiary-fixed-dim": "#00e290",
+                      "tertiary-fixed": "#52ffac",
+                      "secondary-fixed-dim": "#ecb2ff",
+                      "tertiary": "#daffe4",
+                      "error": "#ffb4ab",
+                      "tertiary-container": "#00f89e",
+                      "surface": "#11131c",
+                      "primary-container": "#00f0ff",
+                      "on-primary-fixed-variant": "#004f54",
+                      "on-tertiary-fixed-variant": "#005231",
+                      "on-secondary": "#520071",
+                      "on-primary-fixed": "#002022",
+                      "surface-container-highest": "#32343e",
+                      "surface-container": "#1d1f29",
+                      "outline-variant": "#3b494b",
+                      "outline": "#849495",
+                      "secondary-fixed": "#f8d8ff",
+                      "on-secondary-container": "#480063",
+                      "on-secondary-fixed": "#320047",
+                      "on-tertiary": "#003920",
+                      "on-background": "#e1e1ef",
+                      "inverse-primary": "#006970",
+                      "background": "#11131c",
+                      "inverse-on-surface": "#2e303a",
+                      "inverse-surface": "#e1e1ef",
+                      "on-primary-container": "#006970",
+                      "primary-fixed": "#7df4ff",
+                      "surface-container-low": "#191b24",
+                      "on-error-container": "#ffdad6",
+                      "on-surface-variant": "#b9cacb",
+                      "surface-dim": "#11131c",
+                      "surface-variant": "#32343e",
+                      "on-tertiary-container": "#006d43",
+                      "on-tertiary-fixed": "#002111",
+                      "secondary": "#ecb2ff",
+                      "on-secondary-fixed-variant": "#74009f",
+                      "surface-container-high": "#282933",
+                      "surface-bright": "#373943",
+                      "secondary-container": "#cf5cff",
+                      "on-surface": "#e1e1ef",
+                      "on-primary": "#00363a",
+                      "primary-fixed-dim": "#00dbe9",
+                      "surface-container-lowest": "#0c0e17",
+                      "surface-tint": "#00dbe9",
+                      "on-error": "#690005",
+                      "primary": "#dbfcff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "unit": "4px",
+                      "margin-mobile": "20px",
+                      "gutter": "16px",
+                      "safe-area": "env(safe-area-inset-bottom)"
+              },
+              "fontFamily": {
+                      "display-lg": [
+                              "Geist"
+                      ],
+                      "headline-md": [
+                              "Geist"
+                      ],
+                      "code-sm": [
+                              "JetBrains Mono"
+                      ],
+                      "body-md": [
+                              "Geist"
+                      ],
+                      "label-xs": [
+                              "Geist"
+                      ]
+              },
+              "fontSize": {
+                      "display-lg": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "headline-md": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "code-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0em",
+                                      "fontWeight": "450"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "letterSpacing": "0em",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "label-xs": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "500"
+                              }
+                      ]
+              }
+            },
+          }
+        }
+    </script>
+<style>
+        body {
+            background-color: #11131c;
+            background-image: radial-gradient(circle at 50% 0%, rgba(0,219,233,0.1) 0%, transparent 50%),
+                              radial-gradient(circle at 0% 100%, rgba(207,92,255,0.05) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+        .inner-glow-top {
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+        }
+        .blinking-cursor::after {
+            content: '█';
+            animation: blink 1s step-end infinite;
+            color: #7df4ff;
+            margin-left: 2px;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        /* Custom Scrollbar for terminal area */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(125,244,255,0.2);
+            border-radius: 4px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="text-on-surface h-screen flex flex-col overflow-hidden font-body-md antialiased">
+<!-- TopAppBar -->
+<header class="bg-surface/40 dark:bg-surface-dim/40 backdrop-blur-xl border-b border-white/10 inner-glow-top shadow-[0_20px_40px_rgba(0,219,233,0.05)] fixed top-0 w-full z-50 flex justify-between items-center px-gutter h-16">
+<button class="text-on-surface-variant hover:bg-white/5 active:scale-95 transition-transform p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-headline-md text-headline-md text-primary-fixed-dim drop-shadow-[0_0_8px_rgba(125,244,255,0.4)]">Nova Code</h1>
+<button class="text-on-surface-variant hover:bg-white/5 active:scale-95 transition-transform p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+</header>
+<!-- Main Content Area - Terminal -->
+<main class="flex-1 overflow-y-auto pt-16 pb-[120px] px-gutter font-code-sm text-code-sm text-on-surface-variant flex flex-col justify-end">
+<!-- Terminal Output Container -->
+<div class="space-y-4 w-full max-w-3xl mx-auto">
+<!-- Command 1 -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="text-tertiary-fixed">dev@nova:~/project$</span>
+<span class="text-on-surface">python --version</span>
+</div>
+<div class="text-on-surface-variant/80 pl-4">
+                    Python 3.11.4
+                </div>
+</div>
+<!-- Command 2 -->
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="text-tertiary-fixed">dev@nova:~/project$</span>
+<span class="text-on-surface">pip install flask</span>
+</div>
+<div class="text-on-surface-variant/80 pl-4 space-y-1">
+<div>Collecting flask</div>
+<div>  Downloading Flask-3.0.0-py3-none-any.whl (99 kB)</div>
+<div class="flex items-center gap-2 text-primary-fixed-dim">
+<span>[========================================]</span>
+<span>100%</span>
+</div>
+<div>Collecting Werkzeug&gt;=3.0.0</div>
+<div>  Downloading werkzeug-3.0.1-py3-none-any.whl (226 kB)</div>
+<div>Collecting Jinja2&gt;=3.1.2</div>
+<div>  Downloading Jinja2-3.1.2-py3-none-any.whl (133 kB)</div>
+<div>Installing collected packages: Werkzeug, Jinja2, flask</div>
+<div class="text-tertiary-fixed">Successfully installed Jinja2-3.1.2 Werkzeug-3.0.1 flask-3.0.0</div>
+</div>
+</div>
+<!-- Active Prompt Line -->
+<div class="flex items-center gap-2 pt-2">
+<span class="text-tertiary-fixed">dev@nova:~/project$</span>
+<span class="text-on-surface blinking-cursor"></span>
+</div>
+</div>
+</main>
+<!-- Quick Action Bar (Keyboard Accessory) -->
+<div class="fixed bottom-20 w-full z-40 px-2 pb-2">
+<div class="bg-surface-container/60 backdrop-blur-md border border-white/10 rounded-lg p-2 flex justify-between items-center overflow-x-auto shadow-[0_-5px_15px_rgba(0,0,0,0.3)] inner-glow-top gap-2">
+<button class="bg-surface-container-high hover:bg-surface-bright text-on-surface-variant font-code-sm text-xs px-3 py-1.5 rounded border border-white/5 whitespace-nowrap active:scale-95 transition-all">Tab</button>
+<button class="bg-surface-container-high hover:bg-surface-bright text-on-surface-variant font-code-sm text-xs px-3 py-1.5 rounded border border-white/5 whitespace-nowrap active:scale-95 transition-all">Ctrl</button>
+<button class="bg-surface-container-high hover:bg-surface-bright text-on-surface-variant font-code-sm text-xs px-3 py-1.5 rounded border border-white/5 whitespace-nowrap active:scale-95 transition-all">Alt</button>
+<button class="bg-surface-container-high hover:bg-surface-bright text-on-surface-variant font-code-sm text-xs px-3 py-1.5 rounded border border-white/5 whitespace-nowrap active:scale-95 transition-all">Esc</button>
+<div class="w-[1px] h-6 bg-white/10 mx-1"></div>
+<button class="bg-surface-container-high hover:bg-surface-bright text-on-surface-variant font-code-sm text-xs px-2 py-1.5 rounded border border-white/5 flex items-center justify-center active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[16px]">arrow_upward</span>
+</button>
+<button class="bg-surface-container-high hover:bg-surface-bright text-on-surface-variant font-code-sm text-xs px-2 py-1.5 rounded border border-white/5 flex items-center justify-center active:scale-95 transition-all">
+<span class="material-symbols-outlined text-[16px]">arrow_downward</span>
+</button>
+</div>
+</div>
+<!-- BottomNavBar -->
+<nav class="bg-surface-container-lowest/60 dark:bg-surface-container-lowest/60 backdrop-blur-2xl border-t border-white/10 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] fixed bottom-0 w-full z-50 rounded-t-xl flex justify-around items-center px-4 pb-safe h-20 md:hidden">
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-3 hover:text-primary-fixed active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="code">code</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-3 hover:text-primary-fixed active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="folder_open">folder_open</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-3 hover:text-primary-fixed active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container/30 text-primary-fixed-dim rounded-full p-3 shadow-[0_0_15px_rgba(0,219,233,0.2)] active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+</a>
+</nav>
+</body></html>

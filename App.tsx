@@ -1,37 +1,50 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import { NewAppScreen } from '@react-native/new-app-screen';
+import React, { useState } from 'react';
 import { StatusBar, StyleSheet, useColorScheme, View } from 'react-native';
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+import { CodeEditorScreen } from './src/screens/CodeEditorScreen';
+import { FileExplorerScreen } from './src/screens/FileExplorerScreen';
+import { GlobalSearchScreen } from './src/screens/GlobalSearchScreen';
+import { PackageManagerScreen } from './src/screens/PackageManagerScreen';
+import { TerminalScreen } from './src/screens/TerminalScreen';
+import { theme } from './src/theme';
 
 function App() {
-  const isDarkMode = useColorScheme() === 'dark';
+  const [activeTab, setActiveTab] = useState('code');
 
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <AppContent />
+      <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
+      <AppContent activeTab={activeTab} onNavigate={setActiveTab} />
     </SafeAreaProvider>
   );
 }
 
-function AppContent() {
-  const safeAreaInsets = useSafeAreaInsets();
+function AppContent({ activeTab, onNavigate }: { activeTab: string, onNavigate: (id: string) => void }) {
+  let ScreenComponent = CodeEditorScreen;
+
+  switch (activeTab) {
+    case 'files':
+      ScreenComponent = FileExplorerScreen;
+      break;
+    case 'search':
+      ScreenComponent = GlobalSearchScreen;
+      break;
+    case 'packages':
+      ScreenComponent = PackageManagerScreen;
+      break;
+    case 'terminal':
+      ScreenComponent = TerminalScreen;
+      break;
+    case 'code':
+    default:
+      ScreenComponent = CodeEditorScreen;
+      break;
+  }
 
   return (
     <View style={styles.container}>
-      <NewAppScreen
-        templateFileName="App.tsx"
-        safeAreaInsets={safeAreaInsets}
-      />
+      <ScreenComponent onNavigate={onNavigate} />
     </View>
   );
 }
@@ -39,6 +52,7 @@ function AppContent() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: theme.colors.background,
   },
 });
 

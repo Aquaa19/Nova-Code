@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Package Manager - Nova Code</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed": "#7df4ff",
+                        "surface-container-low": "#191b24",
+                        "on-error-container": "#ffdad6",
+                        "inverse-surface": "#e1e1ef",
+                        "on-primary-container": "#006970",
+                        "on-tertiary-fixed": "#002111",
+                        "secondary": "#ecb2ff",
+                        "on-surface-variant": "#b9cacb",
+                        "surface-dim": "#11131c",
+                        "on-tertiary-container": "#006d43",
+                        "surface-variant": "#32343e",
+                        "on-primary": "#00363a",
+                        "primary-fixed-dim": "#00dbe9",
+                        "surface-container-lowest": "#0c0e17",
+                        "on-secondary-fixed-variant": "#74009f",
+                        "surface-bright": "#373943",
+                        "surface-container-high": "#282933",
+                        "secondary-container": "#cf5cff",
+                        "on-surface": "#e1e1ef",
+                        "on-error": "#690005",
+                        "primary": "#dbfcff",
+                        "surface-tint": "#00dbe9",
+                        "tertiary": "#daffe4",
+                        "error": "#ffb4ab",
+                        "error-container": "#93000a",
+                        "tertiary-fixed-dim": "#00e290",
+                        "secondary-fixed-dim": "#ecb2ff",
+                        "tertiary-fixed": "#52ffac",
+                        "primary-container": "#00f0ff",
+                        "surface": "#11131c",
+                        "tertiary-container": "#00f89e",
+                        "on-secondary": "#520071",
+                        "on-primary-fixed": "#002022",
+                        "surface-container-highest": "#32343e",
+                        "on-primary-fixed-variant": "#004f54",
+                        "on-tertiary-fixed-variant": "#005231",
+                        "on-secondary-container": "#480063",
+                        "secondary-fixed": "#f8d8ff",
+                        "on-secondary-fixed": "#320047",
+                        "inverse-primary": "#006970",
+                        "on-tertiary": "#003920",
+                        "background": "#11131c",
+                        "on-background": "#e1e1ef",
+                        "inverse-on-surface": "#2e303a",
+                        "surface-container": "#1d1f29",
+                        "outline-variant": "#3b494b",
+                        "outline": "#849495"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "margin-mobile": "20px",
+                        "unit": "4px",
+                        "safe-area": "env(safe-area-inset-bottom)"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Geist"],
+                        "headline-md": ["Geist"],
+                        "code-sm": ["JetBrains Mono"],
+                        "display-lg": ["Geist"],
+                        "label-xs": ["Geist"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "code-sm": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "450" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-xs": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .inner-glow-top { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15); }
+        .inner-glow-surface { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 0 20px rgba(0, 219, 233, 0.05); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md text-body-md min-h-screen overflow-x-hidden relative selection:bg-primary-fixed/30 selection:text-primary-fixed">
+<!-- Ambient Background Ether -->
+<div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+<div class="absolute top-[-10%] left-[-10%] w-[60%] h-[50%] bg-primary-fixed/5 rounded-full blur-[100px]"></div>
+<div class="absolute bottom-[20%] right-[-10%] w-[50%] h-[40%] bg-secondary-fixed/5 rounded-full blur-[100px]"></div>
+</div>
+<!-- TopAppBar -->
+<header class="bg-surface/40 dark:bg-surface-dim/40 backdrop-blur-xl fixed top-0 w-full z-50 border-b border-white/10 inner-glow-top shadow-[0_20px_40px_rgba(0,219,233,0.05)] flex justify-between items-center px-gutter h-16">
+<button class="text-on-surface-variant hover:bg-white/5 active:scale-95 transition-transform p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">menu</span>
+</button>
+<h1 class="font-headline-md text-headline-md font-display-lg text-display-lg text-primary-fixed drop-shadow-[0_0_8px_rgba(125,244,255,0.4)] tracking-tight">Nova Code</h1>
+<button class="text-on-surface-variant hover:bg-white/5 active:scale-95 transition-transform p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">search</span>
+</button>
+</header>
+<!-- Main Canvas -->
+<main class="relative z-10 pt-24 pb-32">
+<!-- Search Bar -->
+<div class="px-gutter mb-6">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary-fixed transition-colors">search</span>
+<input class="w-full bg-surface-container-low/50 backdrop-blur-md border-b border-white/10 focus:border-primary-fixed/50 focus:bg-surface-container-highest/60 focus:ring-0 text-on-surface placeholder:text-on-surface-variant font-code-sm text-code-sm rounded-t-lg pl-12 pr-4 py-4 transition-all inner-glow-surface focus:shadow-[0_4px_20px_rgba(0,219,233,0.1)] outline-none" placeholder="Search Maven or pip packages..." type="text"/>
+</div>
+</div>
+<!-- Active Installation Progress -->
+<div class="px-gutter mb-8">
+<div class="bg-surface-container-high/60 backdrop-blur-2xl border border-primary-fixed/20 rounded-xl p-4 inner-glow-top shadow-[0_10px_30px_rgba(0,219,233,0.05)]">
+<div class="flex justify-between items-center mb-3">
+<div class="flex items-center space-x-3">
+<div class="w-8 h-8 rounded-full bg-primary-container/20 border border-primary-fixed/30 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-fixed text-sm animate-spin" style="font-variation-settings: 'FILL' 0;">autorenew</span>
+</div>
+<div>
+<h3 class="font-code-sm text-code-sm text-on-surface">pip install numpy</h3>
+<p class="font-label-xs text-label-xs text-on-surface-variant">Resolving dependencies...</p>
+</div>
+</div>
+<span class="font-code-sm text-code-sm text-primary-fixed">68%</span>
+</div>
+<!-- Progress Track -->
+<div class="w-full h-1.5 bg-surface-container-lowest rounded-full overflow-hidden">
+<div class="h-full bg-primary-fixed rounded-full shadow-[0_0_10px_rgba(125,244,255,0.8)] relative" style="width: 68%;">
+<div class="absolute inset-0 bg-gradient-to-r from-transparent to-white/30"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Tabs -->
+<div class="px-gutter mb-6 flex space-x-2">
+<button class="bg-primary-fixed/15 border border-primary-fixed/30 text-primary-fixed px-5 py-2 rounded-full font-label-xs text-label-xs shadow-[0_0_15px_rgba(0,219,233,0.15)] backdrop-blur-md transition-all">Installed</button>
+<button class="text-on-surface-variant border border-transparent hover:border-white/10 px-5 py-2 rounded-full font-label-xs text-label-xs transition-all">Available</button>
+<button class="text-on-surface-variant border border-transparent hover:border-white/10 px-5 py-2 rounded-full font-label-xs text-label-xs transition-all">Updates (2)</button>
+</div>
+<!-- Package List (Bento/Glass Cards) -->
+<div class="px-gutter space-y-4">
+<!-- Package Item 1 -->
+<div class="bg-surface-container-low/40 backdrop-blur-xl border border-white/5 rounded-xl p-4 inner-glow-surface hover:bg-surface-container-high/50 transition-colors group">
+<div class="flex justify-between items-start">
+<div class="flex-1 pr-4">
+<div class="flex items-center space-x-2 mb-1">
+<span class="font-code-sm text-code-sm text-on-surface font-semibold">spring-boot-starter-web</span>
+<span class="px-2 py-0.5 rounded text-[10px] bg-secondary-container/20 text-secondary border border-secondary/20">Maven</span>
+</div>
+<p class="font-label-xs text-label-xs text-on-surface-variant mb-3 line-clamp-2">Starter for building web, including RESTful, applications using Spring MVC. Uses Tomcat as the default embedded container.</p>
+<div class="flex items-center space-x-4 text-outline font-label-xs text-label-xs">
+<span class="flex items-center space-x-1"><span class="material-symbols-outlined text-[14px]">sell</span><span>v3.2.0</span></span>
+<span class="flex items-center space-x-1"><span class="material-symbols-outlined text-[14px]">balance</span><span>Apache 2.0</span></span>
+</div>
+</div>
+<button class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-on-surface-variant hover:text-error hover:border-error/30 hover:bg-error/10 transition-all">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 0;">delete</span>
+</button>
+</div>
+</div>
+<!-- Package Item 2 -->
+<div class="bg-surface-container-low/40 backdrop-blur-xl border border-white/5 rounded-xl p-4 inner-glow-surface hover:bg-surface-container-high/50 transition-colors group">
+<div class="flex justify-between items-start">
+<div class="flex-1 pr-4">
+<div class="flex items-center space-x-2 mb-1">
+<span class="font-code-sm text-code-sm text-on-surface font-semibold">requests</span>
+<span class="px-2 py-0.5 rounded text-[10px] bg-primary-container/20 text-primary-fixed border border-primary-fixed/20">pip</span>
+</div>
+<p class="font-label-xs text-label-xs text-on-surface-variant mb-3 line-clamp-2">Python HTTP for Humans. A simple, yet elegant, HTTP library.</p>
+<div class="flex items-center space-x-4 text-outline font-label-xs text-label-xs">
+<span class="flex items-center space-x-1"><span class="material-symbols-outlined text-[14px]">sell</span><span>v2.31.0</span></span>
+<span class="flex items-center space-x-1"><span class="material-symbols-outlined text-[14px]">balance</span><span>Apache 2.0</span></span>
+</div>
+</div>
+<button class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-on-surface-variant hover:text-error hover:border-error/30 hover:bg-error/10 transition-all">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 0;">delete</span>
+</button>
+</div>
+</div>
+<!-- Package Item 3 (Update Available) -->
+<div class="bg-surface-container-low/40 backdrop-blur-xl border border-tertiary-fixed-dim/20 rounded-xl p-4 inner-glow-surface hover:bg-surface-container-high/50 transition-colors group relative overflow-hidden">
+<div class="absolute left-0 top-0 bottom-0 w-1 bg-tertiary-fixed-dim/50"></div>
+<div class="flex justify-between items-start pl-2">
+<div class="flex-1 pr-4">
+<div class="flex items-center space-x-2 mb-1">
+<span class="font-code-sm text-code-sm text-on-surface font-semibold">lombok</span>
+<span class="px-2 py-0.5 rounded text-[10px] bg-secondary-container/20 text-secondary border border-secondary/20">Maven</span>
+</div>
+<p class="font-label-xs text-label-xs text-on-surface-variant mb-3 line-clamp-1">Spice up your java: Automatic Resource Management, automatic generation of getters, setters, equals, hashCode and toString.</p>
+<div class="flex items-center space-x-4 font-label-xs text-label-xs">
+<span class="flex items-center space-x-1 text-outline line-through"><span class="material-symbols-outlined text-[14px]">sell</span><span>v1.18.28</span></span>
+<span class="flex items-center space-x-1 text-tertiary-fixed-dim"><span class="material-symbols-outlined text-[14px]">arrow_upward</span><span>v1.18.30</span></span>
+</div>
+</div>
+<button class="w-10 h-10 rounded-full border border-tertiary-fixed-dim/30 bg-tertiary-fixed-dim/10 flex items-center justify-center text-tertiary-fixed-dim hover:bg-tertiary-fixed-dim/20 transition-all shadow-[0_0_15px_rgba(0,226,144,0.1)]">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 0;">upgrade</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="bg-surface-container-lowest/60 dark:bg-surface-container-lowest/60 backdrop-blur-2xl fixed bottom-0 w-full z-50 rounded-t-xl shadow-[0_-10px_30px_rgba(0,0,0,0.5)] flex justify-around items-center px-4 pb-safe h-20 md:hidden border-t border-white/5 inner-glow-top">
+<button class="flex flex-col items-center justify-center text-on-surface-variant p-3 hover:text-primary-fixed active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">code</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant p-3 hover:text-primary-fixed active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">folder_open</span>
+</button>
+<!-- Active Tab: Package Manager -->
+<button class="flex flex-col items-center justify-center bg-primary-container/30 text-primary-fixed-dim rounded-full p-3 shadow-[0_0_15px_rgba(0,219,233,0.2)] active:scale-90 transition-all duration-200 border border-primary-fixed/20 relative">
+<div class="absolute inset-0 rounded-full shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] pointer-events-none"></div>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant p-3 hover:text-primary-fixed active:scale-90 transition-all duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">terminal</span>
+</button>
+</nav>
+</body></html>

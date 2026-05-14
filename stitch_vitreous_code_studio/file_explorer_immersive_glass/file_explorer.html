@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Nova Code - File Explorer</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-fixed": "#7df4ff",
+                        "surface-container-low": "#191b24",
+                        "on-error-container": "#ffdad6",
+                        "inverse-surface": "#e1e1ef",
+                        "on-primary-container": "#006970",
+                        "on-tertiary-fixed": "#002111",
+                        "secondary": "#ecb2ff",
+                        "on-surface-variant": "#b9cacb",
+                        "surface-dim": "#11131c",
+                        "on-tertiary-container": "#006d43",
+                        "surface-variant": "#32343e",
+                        "on-primary": "#00363a",
+                        "primary-fixed-dim": "#00dbe9",
+                        "surface-container-lowest": "#0c0e17",
+                        "on-secondary-fixed-variant": "#74009f",
+                        "surface-bright": "#373943",
+                        "surface-container-high": "#282933",
+                        "secondary-container": "#cf5cff",
+                        "on-surface": "#e1e1ef",
+                        "on-error": "#690005",
+                        "primary": "#dbfcff",
+                        "surface-tint": "#00dbe9",
+                        "tertiary": "#daffe4",
+                        "error": "#ffb4ab",
+                        "error-container": "#93000a",
+                        "tertiary-fixed-dim": "#00e290",
+                        "secondary-fixed-dim": "#ecb2ff",
+                        "tertiary-fixed": "#52ffac",
+                        "primary-container": "#00f0ff",
+                        "surface": "#11131c",
+                        "tertiary-container": "#00f89e",
+                        "on-secondary": "#520071",
+                        "on-primary-fixed": "#002022",
+                        "surface-container-highest": "#32343e",
+                        "on-primary-fixed-variant": "#004f54",
+                        "on-tertiary-fixed-variant": "#005231",
+                        "on-secondary-container": "#480063",
+                        "secondary-fixed": "#f8d8ff",
+                        "on-secondary-fixed": "#320047",
+                        "inverse-primary": "#006970",
+                        "on-tertiary": "#003920",
+                        "background": "#11131c",
+                        "on-background": "#e1e1ef",
+                        "inverse-on-surface": "#2e303a",
+                        "surface-container": "#1d1f29",
+                        "outline-variant": "#3b494b",
+                        "outline": "#849495"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "margin-mobile": "20px",
+                        "unit": "4px",
+                        "safe-area": "env(safe-area-inset-bottom)"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Geist"],
+                        "headline-md": ["Geist"],
+                        "code-sm": ["JetBrains Mono"],
+                        "display-lg": ["Geist"],
+                        "label-xs": ["Geist"]
+                    },
+                    "fontSize": {
+                        "body-md": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "code-sm": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "450" }],
+                        "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-xs": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+            font-family: 'Geist', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Liquid Glass Background */
+        .glass-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background: radial-gradient(circle at 20% 30%, rgba(0, 219, 233, 0.2) 0%, transparent 60%),
+                        radial-gradient(circle at 80% 70%, rgba(236, 178, 255, 0.15) 0%, transparent 60%);
+            filter: blur(80px);
+        }
+
+        /* Inner Glow Utility */
+        .inner-glow-top {
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.2);
+        }
+        .glass-border {
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+        .active-file-glow {
+            box-shadow: 0 0 20px rgba(0, 219, 233, 0.25), inset 0 0 10px rgba(0, 219, 233, 0.1);
+        }</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background antialiased selection:bg-primary/30 selection:text-primary-fixed">
+<div class="glass-bg"></div>
+<!-- TopAppBar (Web & Mobile) -->
+<header class="bg-surface/20 dark:bg-surface-dim/20 backdrop-blur-2xl fixed top-0 w-full z-50 border-b border-white/20 inner-glow-top shadow-[0_20px_40px_rgba(0,219,233,0.08)]">
+<div class="flex justify-between items-center px-gutter h-16">
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:bg-white/5 active:scale-95 transition-transform p-2 rounded-full hidden md:block">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-display-lg text-display-lg text-primary-fixed drop-shadow-[0_0_8px_rgba(125,244,255,0.4)] tracking-tight">Nova Code</h1>
+</div>
+<!-- Web Navigation Cluster -->
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-on-surface-variant font-body-md text-body-md hover:text-on-surface transition-colors" href="#">Code</a>
+<a class="text-primary-fixed font-body-md text-body-md font-medium border-b-2 border-primary-fixed pb-1" href="#">Files</a>
+<a class="text-on-surface-variant font-body-md text-body-md hover:text-on-surface transition-colors" href="#">Inventory</a>
+<a class="text-on-surface-variant font-body-md text-body-md hover:text-on-surface transition-colors" href="#">Terminal</a>
+</nav>
+<button class="text-on-surface-variant hover:bg-white/5 active:scale-95 transition-transform p-2 rounded-full">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-grow pt-24 pb-28 md:pb-8 px-gutter md:px-8 max-w-7xl mx-auto w-full flex flex-col gap-6 relative z-10">
+<!-- Project Header Card -->
+<div class="bg-surface-dim/30 backdrop-blur-3xl border border-white/20 rounded-xl p-6 inner-glow-top shadow-[0_20px_60px_rgba(0,0,0,0.4)] flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<div>
+<h2 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-fixed" data-icon="folder_special">folder_special</span>
+                    Nova-Enterprise-Backend
+                </h2>
+<p class="font-code-sm text-code-sm text-on-surface-variant mt-1">/Users/dev/projects/nova-enterprise</p>
+</div>
+<div class="flex gap-3">
+<button class="bg-transparent border border-white/10 text-on-surface font-body-md text-body-md px-4 py-2 rounded-lg hover:bg-white/5 transition-colors flex items-center gap-2 inner-glow-top">
+<span class="material-symbols-outlined text-sm" data-icon="create_new_folder">create_new_folder</span>
+                    New Folder
+                </button>
+<button class="bg-primary-fixed/10 border border-primary-fixed/30 text-primary-fixed font-body-md text-body-md px-4 py-2 rounded-lg hover:bg-primary-fixed/20 transition-colors flex items-center gap-2 inner-glow-top shadow-[0_0_15px_rgba(0,219,233,0.15)]">
+<span class="material-symbols-outlined text-sm" data-icon="note_add">note_add</span>
+                    New File
+                </button>
+</div>
+</div>
+<!-- File Explorer Layout -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 flex-grow">
+<!-- Side Tree View (Web/Tablet) or Main View (Mobile) -->
+<div class="col-span-1 md:col-span-4 lg:col-span-3 bg-surface-dim/20 backdrop-blur-3xl border border-white/15 rounded-xl inner-glow-top overflow-hidden flex flex-col h-[600px] md:h-auto">
+<div class="p-4 border-b border-white/10 flex justify-between items-center bg-surface/20">
+<span class="font-label-xs text-label-xs text-on-surface-variant uppercase tracking-wider">Project Explorer</span>
+<button class="text-on-surface-variant hover:text-primary-fixed transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="collapse_all">collapse_all</span>
+</button>
+</div>
+<div class="overflow-y-auto p-2 font-code-sm text-code-sm">
+<!-- Root -->
+<div class="flex flex-col gap-1">
+<!-- src folder (expanded) -->
+<div class="flex items-center gap-2 px-2 py-1.5 hover:bg-white/5 rounded-md cursor-pointer group">
+<span class="material-symbols-outlined text-on-surface-variant text-sm transition-transform group-hover:text-on-surface" data-icon="expand_more">expand_more</span>
+<span class="material-symbols-outlined text-secondary text-base" data-icon="folder_open">folder_open</span>
+<span class="text-on-surface">src</span>
+</div>
+<!-- nested content -->
+<div class="pl-6 flex flex-col gap-1 border-l border-white/5 ml-3">
+<!-- main folder -->
+<div class="flex items-center gap-2 px-2 py-1.5 hover:bg-white/5 rounded-md cursor-pointer group">
+<span class="material-symbols-outlined text-on-surface-variant text-sm transition-transform group-hover:text-on-surface" data-icon="expand_more">expand_more</span>
+<span class="material-symbols-outlined text-secondary text-base" data-icon="folder_open">folder_open</span>
+<span class="text-on-surface">main</span>
+</div>
+<!-- nested deeper -->
+<div class="pl-6 flex flex-col gap-1 border-l border-white/5 ml-3">
+<!-- java folder -->
+<div class="flex items-center gap-2 px-2 py-1.5 hover:bg-white/5 rounded-md cursor-pointer group">
+<span class="material-symbols-outlined text-on-surface-variant text-sm transition-transform group-hover:text-on-surface" data-icon="expand_more">expand_more</span>
+<span class="material-symbols-outlined text-secondary text-base" data-icon="folder_open">folder_open</span>
+<span class="text-on-surface">java</span>
+</div>
+<div class="pl-6 flex flex-col gap-1 border-l border-white/5 ml-3">
+<div class="flex items-center gap-2 px-2 py-1.5 hover:bg-white/5 rounded-md cursor-pointer group">
+<span class="material-symbols-outlined text-on-surface-variant text-sm transition-transform group-hover:text-on-surface" data-icon="expand_more">expand_more</span>
+<span class="material-symbols-outlined text-secondary text-base" data-icon="folder_open">folder_open</span>
+<span class="text-on-surface">com.nova</span>
+</div>
+<!-- Files -->
+<div class="pl-6 flex flex-col gap-1 border-l border-white/5 ml-3">
+<div class="flex items-center gap-2 px-2 py-1.5 bg-primary-fixed/20 border border-primary-fixed/40 rounded-md cursor-pointer text-primary-fixed shadow-[inset_2px_0_0_0_theme('colors.primary-fixed')] active-file-glow">
+<span class="material-symbols-outlined text-base" data-icon="description">description</span>
+<span>App.java</span>
+</div>
+<div class="flex items-center gap-2 px-2 py-1.5 hover:bg-white/5 rounded-md cursor-pointer text-on-surface-variant">
+<span class="material-symbols-outlined text-base" data-icon="description">description</span>
+<span>ConfigManager.java</span>
+</div>
+</div>
+</div>
+<!-- python folder -->
+<div class="flex items-center gap-2 px-2 py-1.5 hover:bg-white/5 rounded-md cursor-pointer group mt-2">
+<span class="material-symbols-outlined text-on-surface-variant text-sm transition-transform group-hover:text-on-surface" data-icon="chevron_right">chevron_right</span>
+<span class="material-symbols-outlined text-primary-fixed-dim text-base" data-icon="folder">folder</span>
+<span class="text-on-surface-variant">python_scripts</span>
+</div>
+</div>
+</div>
+<!-- other root folders -->
+<div class="flex items-center gap-2 px-2 py-1.5 hover:bg-white/5 rounded-md cursor-pointer group mt-2">
+<span class="material-symbols-outlined text-on-surface-variant text-sm transition-transform group-hover:text-on-surface" data-icon="chevron_right">chevron_right</span>
+<span class="material-symbols-outlined text-on-surface-variant text-base" data-icon="folder">folder</span>
+<span class="text-on-surface-variant">test</span>
+</div>
+<div class="flex items-center gap-2 px-2 py-1.5 hover:bg-white/5 rounded-md cursor-pointer group">
+<span class="material-symbols-outlined text-transparent text-sm" data-icon="circle">circle</span>
+<span class="material-symbols-outlined text-on-surface-variant text-base" data-icon="settings">settings</span>
+<span class="text-on-surface-variant">pom.xml</span>
+</div>
+<div class="flex items-center gap-2 px-2 py-1.5 hover:bg-white/5 rounded-md cursor-pointer group">
+<span class="material-symbols-outlined text-transparent text-sm" data-icon="circle">circle</span>
+<span class="material-symbols-outlined text-on-surface-variant text-base" data-icon="article">article</span>
+<span class="text-on-surface-variant">README.md</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Preview/Editor Panel (Hidden on small mobile, visible md+) -->
+<div class="hidden md:flex col-span-8 lg:col-span-9 bg-surface-container-lowest/40 backdrop-blur-[40px] border border-white/10 rounded-xl flex-col overflow-hidden relative">
+<!-- Tabs -->
+<div class="flex border-b border-white/5 bg-surface-dim/50 overflow-x-auto no-scrollbar">
+<div class="px-4 py-3 bg-surface-container-low border-t-2 border-primary-fixed text-primary-fixed font-code-sm text-code-sm flex items-center gap-2 min-w-max shadow-[0_-4px_10px_rgba(0,219,233,0.1)]">
+<span class="material-symbols-outlined text-sm" data-icon="description">description</span>
+                        App.java
+                        <button class="ml-2 hover:text-white rounded-full p-0.5"><span class="material-symbols-outlined text-[14px]" data-icon="close">close</span></button>
+</div>
+<div class="px-4 py-3 text-on-surface-variant font-code-sm text-code-sm flex items-center gap-2 hover:bg-white/5 cursor-pointer min-w-max border-r border-white/5">
+<span class="material-symbols-outlined text-sm" data-icon="description">description</span>
+                        pom.xml
+                    </div>
+</div>
+<!-- Code Area (Mockup) -->
+<div class="flex-grow p-4 font-code-sm text-code-sm text-on-surface overflow-auto relative leading-loose">
+<!-- Line Numbers -->
+<div class="absolute left-0 top-0 bottom-0 w-12 bg-surface-dim/30 border-r border-white/5 text-on-surface-variant/50 text-right pr-3 pt-4 select-none flex flex-col gap-1">
+<span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span>
+</div>
+<!-- Code Content -->
+<div class="pl-12 pt-0 flex flex-col gap-1">
+<div class="text-secondary">package <span class="text-on-surface">com.nova;</span></div>
+<br/>
+<div class="text-secondary">import <span class="text-on-surface">java.util.logging.Logger;</span></div>
+<br/>
+<div><span class="text-primary-fixed">public class</span> App {</div>
+<div class="pl-8 text-primary-fixed-dim">private static final <span class="text-on-surface">Logger logger = Logger.getLogger(App.</span><span class="text-primary-fixed">class</span><span class="text-on-surface">.getName());</span></div>
+<br/>
+<div class="pl-8 bg-gradient-to-r from-primary-fixed/10 to-transparent -ml-12 pl-20 relative"><div class="absolute left-12 top-0 bottom-0 w-[2px] bg-primary-fixed"></div><span class="text-primary-fixed">public static void</span> <span class="text-tertiary-fixed">main</span>(String[] args) {</div>
+<div class="pl-16 text-on-surface">logger.info(<span class="text-secondary-fixed-dim">"Nova Enterprise Backend Initialized."</span>);</div>
+<div class="pl-16 text-on-surface">ConfigManager.load();</div>
+<div class="pl-8">}</div>
+<div>}</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden bg-surface-container-lowest/40 dark:bg-surface-container-lowest/40 backdrop-blur-3xl fixed bottom-0 w-full z-50 rounded-t-xl border-t border-white/20 shadow-[0_-15px_40px_rgba(0,0,0,0.6)]">
+<div class="flex justify-around items-center px-4 pb-safe h-20">
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-3 hover:text-primary-fixed active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="code">code</span>
+</a>
+<!-- Active State -->
+<a class="flex flex-col items-center justify-center bg-primary-container/30 text-primary-fixed-dim rounded-full p-3 shadow-[0_0_15px_rgba(0,219,233,0.2)] hover:text-primary-fixed active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="folder_open">folder_open</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-3 hover:text-primary-fixed active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant p-3 hover:text-primary-fixed active:scale-90 transition-all duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+</a>
+</div>
+</nav>
+</body></html>
