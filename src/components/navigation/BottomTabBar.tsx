@@ -1,3 +1,5 @@
+// src/components/navigation/BottomTabBar.tsx
+
 import React from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';

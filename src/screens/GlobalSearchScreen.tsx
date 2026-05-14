@@ -23,7 +23,7 @@ const FILTER_ITEMS = [
   { key: 'symbols', label: 'Symbols', icon: 'code-tags' },
 ];
 
-export const GlobalSearchScreen: React.FC<{ onNavigate?: (id: string) => void }> = ({ onNavigate }) => {
+export const GlobalSearchScreen: React.FC = () => {
   const [query, setQuery] = useState('React');
   const [activeFilter, setActiveFilter] = useState('all');
 
@@ -43,7 +43,7 @@ export const GlobalSearchScreen: React.FC<{ onNavigate?: (id: string) => void }>
         activeKey={activeFilter}
         onChange={setActiveFilter}
       />
-      
+
       <SearchResultsGroup title="Top Match" icon="star-outline">
         <CodeSnippetCard
           fileName="App.tsx"
@@ -60,12 +60,6 @@ export const GlobalSearchScreen: React.FC<{ onNavigate?: (id: string) => void }>
           onPress={() => {}}
         />
       </SearchResultsGroup>
-      
-      <BottomTabBar
-        items={NAV_ITEMS}
-        activeId="search"
-        onTabPress={onNavigate || (() => {})}
-      />
     </ScreenContainer>
   );
 };

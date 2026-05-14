@@ -31,7 +31,7 @@ const NAV_ITEMS = [
   { id: 'terminal', label: 'Terminal', icon: 'console' },
 ];
 
-export const FileExplorerScreen: React.FC<{ onNavigate?: (id: string) => void }> = ({ onNavigate }) => {
+export const FileExplorerScreen: React.FC = () => {
   const [selectedNodeId, setSelectedNodeId] = useState<string>();
 
   const renderLeftPane = () => (
@@ -66,11 +66,6 @@ export const FileExplorerScreen: React.FC<{ onNavigate?: (id: string) => void }>
           leftWidth={40}
         />
       </View>
-      <BottomTabBar
-        items={NAV_ITEMS}
-        activeId="files"
-        onTabPress={onNavigate || (() => {})}
-      />
     </ScreenContainer>
   );
 };

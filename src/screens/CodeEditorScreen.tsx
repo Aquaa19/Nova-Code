@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { ScreenContainer } from '../components/layout/ScreenContainer';
 import { AppHeader } from '../components/navigation/AppHeader';
-import { BottomTabBar } from '../components/navigation/BottomTabBar';
 import { FileTabBar, FileTab } from '../features/editor/components/FileTabBar';
 import { CodeEditorView } from '../features/editor/components/CodeEditorView';
 import { FloatingActionButton } from '../components/buttons/FloatingActionButton';
@@ -34,7 +33,7 @@ const NAV_ITEMS = [
   { id: 'terminal', label: 'Terminal', icon: 'console' },
 ];
 
-export const CodeEditorScreen: React.FC<{ onNavigate?: (id: string) => void }> = ({ onNavigate }) => {
+export const CodeEditorScreen: React.FC = () => {
   const [activeTabId, setActiveTabId] = useState('1');
 
   return (
@@ -61,11 +60,6 @@ export const CodeEditorScreen: React.FC<{ onNavigate?: (id: string) => void }> =
       <FloatingActionButton
         icon="play"
         onPress={() => console.log('Run code')}
-      />
-      <BottomTabBar
-        items={NAV_ITEMS}
-        activeId="code"
-        onTabPress={onNavigate || (() => {})}
       />
     </ScreenContainer>
   );

@@ -2,18 +2,10 @@ import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { ScreenContainer } from '../components/layout/ScreenContainer';
 import { AppHeader } from '../components/navigation/AppHeader';
-import { BottomTabBar } from '../components/navigation/BottomTabBar';
 import { TerminalView } from '../features/terminal/components/TerminalView';
 import { KeyboardAccessoryBar } from '../features/terminal/components/KeyboardAccessoryBar';
 import { TerminalEntry } from '../features/terminal/components/TerminalOutputRow';
 
-const NAV_ITEMS = [
-  { id: 'code', label: 'Code', icon: 'code-braces' },
-  { id: 'files', label: 'Files', icon: 'folder-outline' },
-  { id: 'search', label: 'Search', icon: 'magnify' },
-  { id: 'packages', label: 'Packages', icon: 'package-variant' },
-  { id: 'terminal', label: 'Terminal', icon: 'console' },
-];
 
 const ACCESSORY_KEYS = [
   { id: 'tab', label: 'TAB', icon: 'keyboard-tab' },
@@ -28,7 +20,7 @@ const INITIAL_ENTRIES: TerminalEntry[] = [
   { id: '3', type: 'output', content: 'Starting Metro Bundler...' },
 ];
 
-export const TerminalScreen: React.FC<{ onNavigate?: (id: string) => void }> = ({ onNavigate }) => {
+export const TerminalScreen: React.FC = () => {
   const [entries, setEntries] = useState<TerminalEntry[]>(INITIAL_ENTRIES);
 
   const handleCommand = (cmd: string) => {
@@ -61,11 +53,6 @@ export const TerminalScreen: React.FC<{ onNavigate?: (id: string) => void }> = (
       <KeyboardAccessoryBar
         keys={ACCESSORY_KEYS}
         onKeyPress={() => {}}
-      />
-      <BottomTabBar
-        items={NAV_ITEMS}
-        activeId="terminal"
-        onTabPress={onNavigate || (() => {})}
       />
     </ScreenContainer>
   );

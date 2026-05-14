@@ -2,19 +2,11 @@ import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { ScreenContainer } from '../components/layout/ScreenContainer';
 import { AppHeader } from '../components/navigation/AppHeader';
-import { BottomTabBar } from '../components/navigation/BottomTabBar';
 import { SearchInput } from '../components/inputs/SearchInput';
 import { PackageTabs } from '../features/packages/components/PackageTabs';
 import { PackageList } from '../features/packages/components/PackageList';
 import { InstallProgressCard } from '../features/packages/components/InstallProgressCard';
 
-const NAV_ITEMS = [
-  { id: 'code', label: 'Code', icon: 'code-braces' },
-  { id: 'files', label: 'Files', icon: 'folder-outline' },
-  { id: 'search', label: 'Search', icon: 'magnify' },
-  { id: 'packages', label: 'Packages', icon: 'package-variant' },
-  { id: 'terminal', label: 'Terminal', icon: 'console' },
-];
 
 const TABS = [
   { id: 'installed', label: 'Installed' },
@@ -40,7 +32,7 @@ const MOCK_PACKAGES = [
   },
 ];
 
-export const PackageManagerScreen: React.FC<{ onNavigate?: (id: string) => void }> = ({ onNavigate }) => {
+export const PackageManagerScreen: React.FC = () => {
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState('installed');
 
@@ -72,11 +64,6 @@ export const PackageManagerScreen: React.FC<{ onNavigate?: (id: string) => void 
           onUpgrade={() => {}}
         />
       </View>
-      <BottomTabBar
-        items={NAV_ITEMS}
-        activeId="packages"
-        onTabPress={onNavigate || (() => {})}
-      />
     </ScreenContainer>
   );
 };
