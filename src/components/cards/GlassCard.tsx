@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
+import { StyleSheet, ViewStyle, StyleProp } from 'react-native';
 import { GlassPanel } from '../panels/GlassPanel';
 import { theme } from '../../theme';
 
@@ -7,7 +7,7 @@ interface GlassCardProps {
   children: React.ReactNode;
   active?: boolean;
   padding?: keyof typeof theme.spacing;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 export const GlassCard: React.FC<GlassCardProps> = ({

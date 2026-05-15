@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { storage } from '../storage/mmkv';
 
-interface Project {
+export interface Project {
   name: string;
   path: string;
   language: string;

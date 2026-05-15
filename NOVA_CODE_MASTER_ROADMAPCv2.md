@@ -239,11 +239,11 @@ src/navigation/
 ```
 
 ### ✅ Definition of Done — Phase 0.1
-- [ ] App launches without crash
-- [ ] All 5 tabs are tappable and navigate correctly
-- [ ] TypeScript has no route-type errors
-- [ ] Android back button returns to previous screen
-- [ ] Your existing `BottomTabBar.tsx` is connected to the navigator (not duplicated)
+- [x] App launches without crash
+- [x] All 5 tabs are tappable and navigate correctly
+- [x] TypeScript has no route-type errors
+- [x] Android back button returns to previous screen
+- [x] Your existing `BottomTabBar.tsx` is connected to the navigator (not duplicated)
 
 ### ❌ Do NOT Yet
 - Wire any real data to screens
@@ -461,10 +461,10 @@ export const useSettingsStore = create<SettingsStore>(set => ({
 ```
 
 ### ✅ Definition of Done — Phase 0.2
-- [ ] All 4 stores import and compile without TypeScript errors
-- [ ] MMKV persists settings across app kills (verify by changing a setting, killing app, reopening)
-- [ ] `recentProjects` survives app restart
-- [ ] No circular imports between store files
+- [x] All 4 stores import and compile without TypeScript errors
+- [x] MMKV persists settings across app kills (verify by changing a setting, killing app, reopening)
+- [x] `recentProjects` survives app restart
+- [x] No circular imports between store files
 
 ### ❌ Do NOT Yet
 - Connect stores to real RNFS operations
@@ -704,11 +704,11 @@ useEffect(() => {
 ```
 
 ### ✅ Definition of Done — Phase 1.1
-- [ ] `FileService.init()` creates the projects directory on first launch
-- [ ] `FileService.readDir(PROJECTS_ROOT)` returns real files/folders from device
-- [ ] `FileService.writeFile` and `readFile` round-trip correctly (write then read back)
-- [ ] Permissions granted on Android 10, 11, 12, 13 (test on at least one real device)
-- [ ] No crash when the directory already exists on second launch
+- [x] `FileService.init()` creates the projects directory on first launch
+- [x] `FileService.readDir(PROJECTS_ROOT)` returns real files/folders from device
+- [x] `FileService.writeFile` and `readFile` round-trip correctly (write then read back)
+- [x] Permissions granted on Android 10, 11, 12, 13 (test on at least one real device)
+- [x] No crash when the directory already exists on second launch
 
 ### ❌ Do NOT Yet
 - Connect RNFS to the FileTree UI (that's Phase 1.2)
@@ -900,14 +900,14 @@ Wire long-press on `FileTreeItem` to open `ActionSheetModal` with actions:
 - Copy Path → `Clipboard.setString(node.path)`
 
 ### ✅ Definition of Done — Phase 1.2
-- [ ] File explorer shows real files from device
-- [ ] Folders expand/collapse lazily (do not read entire tree upfront)
-- [ ] Tapping a file triggers `onFilePress` callback
-- [ ] Long-press shows action sheet with Rename/Delete/New File
-- [ ] Rename and Delete work correctly and update the tree
-- [ ] Extension → icon colour mapping is visible
-- [ ] Empty directory shows "No files" state
-- [ ] Error state shown when directory is unreadable
+- [x] File explorer shows real files from device
+- [x] Folders expand/collapse lazily (do not read entire tree upfront)
+- [x] Tapping a file triggers `onFilePress` callback
+- [x] Long-press shows action sheet with Rename/Delete/New File
+- [x] Rename and Delete work correctly and update the tree
+- [x] Extension → icon colour mapping is visible
+- [x] Empty directory shows "No files" state
+- [x] Error state shown when directory is unreadable
 
 ### ❌ Do NOT Yet
 - Open files in editor (Phase 3 handles this)
@@ -1049,11 +1049,11 @@ export const ProjectService = new ProjectServiceClass();
 ```
 
 ### ✅ Definition of Done — Phase 2.1
-- [ ] "New Project" modal shows template options and creates real directory
-- [ ] Template files appear in file explorer immediately after creation
-- [ ] Recent projects list persists across app restarts
-- [ ] Opening an existing project switches `currentProject` in store and reloads file tree
-- [ ] Duplicate project name shows error message (not a crash)
+- [x] "New Project" modal shows template options and creates real directory
+- [x] Template files appear in file explorer immediately after creation
+- [x] Recent projects list persists across app restarts
+- [x] Opening an existing project switches `currentProject` in store and reloads file tree
+- [x] Duplicate project name shows error message (not a crash)
 
 ### 🔖 Commit Checkpoint
 ```
@@ -1361,12 +1361,12 @@ export const WebViewEditor = forwardRef<WebViewEditorHandle, Props>(({
 ```
 
 ### ✅ Definition of Done — Phase 3.2
-- [ ] WebView loads the local HTML file without errors
-- [ ] `INIT` message successfully loads content into CodeMirror
-- [ ] Typing in the editor sends `CONTENT_CHANGED` back to RN
-- [ ] `getContent()` promise resolves with current editor content
-- [ ] Language highlighting changes when a different file extension is opened
-- [ ] No white flash on editor mount
+- [x] WebView loads the local HTML file without errors
+- [x] `INIT` message successfully loads content into CodeMirror
+- [x] Typing in the editor sends `CONTENT_CHANGED` back to RN
+- [x] `getContent()` promise resolves with current editor content
+- [x] Language highlighting changes when a different file extension is opened
+- [x] No white flash on editor mount
 
 ### ❌ Do NOT Yet
 - Implement autosave (Phase 3.3)
@@ -1535,15 +1535,15 @@ export function CodeEditorScreen({ route }) {
 ```
 
 ### ✅ Definition of Done — Phase 3.3
-- [ ] Tapping a file in FileExplorer opens it in the editor
-- [ ] File content loads into CodeMirror correctly
-- [ ] Syntax highlighting works for JS/TS/Python/JSON/HTML/CSS
-- [ ] `●` dot appears on tab when file is edited (unsaved)
-- [ ] Manual save (Ctrl+S or save button) writes to disk
-- [ ] Autosave fires every 30 seconds and clears the unsaved indicator
-- [ ] Multiple files can be open in tabs simultaneously
-- [ ] Closing a tab removes it; switching tabs restores correct content
-- [ ] 5 MB file shows a performance warning before opening
+- [x] Tapping a file in FileExplorer opens it in the editor
+- [x] File content loads into CodeMirror correctly
+- [x] Syntax highlighting works for JS/TS/Python/JSON/HTML/CSS
+- [x] `●` dot appears on tab when file is edited (unsaved)
+- [x] Manual save (Ctrl+S or save button) writes to disk
+- [x] Autosave fires every 30 seconds and clears the unsaved indicator
+- [x] Multiple files can be open in tabs simultaneously
+- [x] Closing a tab removes it; switching tabs restores correct content
+- [x] 5 MB file shows a performance warning before opening
 
 ### 🔖 Commit Checkpoint
 ```
@@ -1817,14 +1817,14 @@ const TYPE_COLORS = {
 ```
 
 ### ✅ Definition of Done — Phase 4
-- [ ] Runtime list loads from Piston API and shows in picker
-- [ ] Selected runtime persists in store
-- [ ] "Run" button executes the currently open file
-- [ ] `stdout` appears in white, `stderr` in red, system messages in gray
-- [ ] Exit code badge shows with correct colour
-- [ ] Rate limit error shows a helpful message (not a crash)
-- [ ] Clear button clears terminal lines
-- [ ] Execution is cancelled cleanly when user navigates away
+- [x] Runtime list loads from Piston API and shows in picker
+- [x] Selected runtime persists in store
+- [x] "Run" button executes the currently open file
+- [x] `stdout` appears in white, `stderr` in red, system messages in gray
+- [x] Exit code badge shows with correct colour
+- [x] Rate limit error shows a helpful message (not a crash)
+- [x] Clear button clears terminal lines
+- [x] Execution is cancelled cleanly when user navigates away
 
 ### ❌ Do NOT Yet
 - Add stdin input handling (v2)

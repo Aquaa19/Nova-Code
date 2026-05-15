@@ -12,6 +12,7 @@ interface FileTreeProps {
   selectedPath?: string; // Updated to match file paths instead of abstract IDs
   onFilePress: (node: FileNode) => void;
   onFileLongPress: (node: FileNode) => void;
+  refreshTrigger?: number; // Listens for external file system changes
 }
 
 export const FileTree: React.FC<FileTreeProps> = ({
@@ -19,13 +20,25 @@ export const FileTree: React.FC<FileTreeProps> = ({
   selectedPath,
   onFilePress,
   onFileLongPress,
+  refreshTrigger = 0,
 }) => {
-  const { expandedPaths, nodeChildren, toggleExpand, loadChildren, error } = useFileTree(rootPath);
+  const { expandedPaths, nodeChildren, toggleExpand, loadChildren, refreshPath, error } = useFileTree(rootPath);
 
   // Load the root directory contents when the component mounts or path changes
   useEffect(() => {
     loadChildren(rootPath);
   }, [rootPath, loadChildren]);
+
+  // Handle external refresh triggers (e.g., after creating/deleting a file)
+  useEffect(() => {
+    if (refreshTrigger > 0) {
+      refreshPath(rootPath);
+      // Refresh all currently expanded directories to keep the whole visible tree in sync
+      expandedPaths.forEach(path => {
+        refreshPath(path);
+      });
+    }
+  }, [refreshTrigger, rootPath, expandedPaths, refreshPath]);
 
   // Flatten the dynamic dictionary into a single array for FlatList performance
   const flattenedData = useMemo(() => {

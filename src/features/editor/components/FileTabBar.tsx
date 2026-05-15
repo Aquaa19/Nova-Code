@@ -1,45 +1,45 @@
+// src/features/editor/components/FileTabBar.tsx
+
 import React from 'react';
 import { View, StyleSheet, ScrollView, Pressable } from 'react-native';
-import { AppText } from '../../../components/typography/AppText';
-import { ActionCircleButton } from '../../../components/buttons/ActionCircleButton';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { AppText } from '../../../components/typography/AppText';
 import { theme } from '../../../theme';
-
-export interface FileTab {
-  id: string;
-  name: string;
-  isDirty?: boolean;
-  icon?: string;
-}
+import { OpenFile } from '../../../store/useEditorStore';
+import { getFileIcon } from '../../files/utils/fileIcons';
 
 interface FileTabBarProps {
-  tabs: FileTab[];
-  activeTabId: string;
-  onTabPress: (id: string) => void;
-  onCloseTab: (id: string) => void;
+  tabs: OpenFile[];
+  activeIndex: number;
+  onTabPress: (index: number) => void;
+  onCloseTab: (path: string) => void;
 }
 
 export const FileTabBar: React.FC<FileTabBarProps> = ({
   tabs,
-  activeTabId,
+  activeIndex,
   onTabPress,
   onCloseTab,
 }) => {
   return (
     <View style={styles.container}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {tabs.map((tab) => {
-          const isActive = tab.id === activeTabId;
+        {tabs.map((tab, index) => {
+          const isActive = index === activeIndex;
+          const fileName = tab.path.split('/').pop() ?? 'Untitled';
+          const extension = fileName.split('.').pop() ?? '';
+          const { icon, color } = getFileIcon(extension, false);
+
           return (
             <Pressable
-              key={tab.id}
+              key={tab.path}
               style={[styles.tab, isActive && styles.activeTab]}
-              onPress={() => onTabPress(tab.id)}
+              onPress={() => onTabPress(index)}
             >
               <MaterialCommunityIcons
-                name={tab.icon || "file-code-outline"}
+                name={icon}
                 size={14}
-                color={isActive ? theme.colors.primaryFixed : theme.colors.onSurfaceVariant}
+                color={isActive ? color : theme.colors.onSurfaceVariant}
                 style={styles.icon}
               />
               <AppText
@@ -47,12 +47,12 @@ export const FileTabBar: React.FC<FileTabBarProps> = ({
                 color={isActive ? theme.colors.onSurface : theme.colors.onSurfaceVariant}
                 style={styles.tabName}
               >
-                {tab.name}
+                {fileName}
               </AppText>
-              {tab.isDirty && (
+              {tab.unsaved && (
                 <View style={styles.dirtyDot} />
               )}
-              <Pressable onPress={() => onCloseTab(tab.id)} style={styles.closeButton}>
+              <Pressable onPress={() => onCloseTab(tab.path)} style={styles.closeButton}>
                 <MaterialCommunityIcons name="close" size={12} color={theme.colors.onSurfaceVariant} />
               </Pressable>
             </Pressable>
@@ -103,12 +103,12 @@ const styles = StyleSheet.create({
     padding: 2,
     borderRadius: theme.radius.xs,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    marginLeft: 4,
   },
   dirtyDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
     backgroundColor: theme.colors.primaryFixed,
-    marginRight: 6,
   },
 });
