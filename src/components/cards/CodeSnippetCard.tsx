@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { GlassCard } from './GlassCard';
 import { AppText } from '../typography/AppText';
 import { CodeText } from '../typography/CodeText';
@@ -10,14 +10,17 @@ interface CodeSnippetCardProps {
   fileName: string;
   path: string;
   code: string;
+  onPress: () => void;
 }
 
 export const CodeSnippetCard: React.FC<CodeSnippetCardProps> = ({
   fileName,
   path,
   code,
+  onPress,
 }) => {
   return (
+    <TouchableOpacity activeOpacity={0.8} onPress={onPress}>
     <GlassCard padding="s0" style={styles.container}>
       <View style={styles.header}>
         <MaterialCommunityIcons name="file-code-outline" size={16} color={theme.colors.onSurfaceVariant} />
@@ -32,6 +35,7 @@ export const CodeSnippetCard: React.FC<CodeSnippetCardProps> = ({
         <CodeText>{code}</CodeText>
       </ScrollView>
     </GlassCard>
+    </TouchableOpacity>
   );
 };
 
