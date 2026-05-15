@@ -7,16 +7,16 @@ import { AppHeader } from '../components/navigation/AppHeader';
 import { SplitPaneLayout } from '../features/files/components/SplitPaneLayout';
 import { ProjectHeaderCard } from '../features/files/components/ProjectHeaderCard';
 import { FileTree } from '../features/files/components/FileTree';
-import { CodeEditorView } from '../features/editor/components/CodeEditorView';
 
 import { FileService, PROJECTS_ROOT, FileNode } from '../services/FileService';
 import { useProjectStore, Project } from '../store/useProjectStore';
 
-// Modals
+// Modals & Drawers
 import { ActionSheetModal, ActionItem } from '../components/modals/ActionSheetModal';
 import { NewItemModal, NewItemMode } from '../components/modals/NewItemModal';
 import { NewProjectModal } from '../features/files/components/NewProjectModal';
 import { ProjectSwitcherModal } from '../features/files/components/ProjectSwitcherModal';
+import { SourceControlDrawer } from '../features/files/components/SourceControlDrawer';
 
 // Services & Types
 import { ProjectService } from '../features/files/services/ProjectService';
@@ -41,6 +41,7 @@ export const FileExplorerScreen: React.FC<any> = ({ navigation }) => {
 
   const [newProjectModalVisible, setNewProjectModalVisible] = useState(false);
   const [projectSwitcherVisible, setProjectSwitcherVisible] = useState(false);
+  const [sourceControlVisible, setSourceControlVisible] = useState(false);
 
   // Trigger FileTree refresh
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
@@ -101,7 +102,6 @@ export const FileExplorerScreen: React.FC<any> = ({ navigation }) => {
   };
 
   const handleSwitchProject = (project: Project) => {
-    // Update lastOpened timestamp to bump it to the top
     const updatedProject = { ...project, lastOpened: Date.now() };
     addRecentProject(updatedProject);
     setCurrentProject(updatedProject);
@@ -110,7 +110,7 @@ export const FileExplorerScreen: React.FC<any> = ({ navigation }) => {
   };
 
   const handleCloseWorkspace = () => {
-    setCurrentProject(null as any); // Fallback to root
+    setCurrentProject(null as any); 
     setProjectSwitcherVisible(false);
     setRefreshTrigger(prev => prev + 1);
   };
@@ -198,7 +198,7 @@ export const FileExplorerScreen: React.FC<any> = ({ navigation }) => {
     </View>
   );
 
-    const renderRightPane = () => (
+  const renderRightPane = () => (
     <View style={[styles.rightPaneContent, { justifyContent: 'center', alignItems: 'center' }]}>
       <AppText variant="bodyMd" color={theme.colors.onSurfaceVariant}>
         Select a file to preview
@@ -206,10 +206,13 @@ export const FileExplorerScreen: React.FC<any> = ({ navigation }) => {
     </View>
   );
 
-
   return (
     <ScreenContainer withHeader withBottomTabs>
-      <AppHeader title="Files" />
+      <AppHeader 
+        title="Files" 
+        rightIcon="source-branch" 
+        onRightPress={() => setSourceControlVisible(true)} 
+      />
       <View style={styles.content}>
         <SplitPaneLayout
           left={renderLeftPane()}
@@ -244,6 +247,12 @@ export const FileExplorerScreen: React.FC<any> = ({ navigation }) => {
         onClose={() => setProjectSwitcherVisible(false)}
         onSelectProject={handleSwitchProject}
         onCloseWorkspace={handleCloseWorkspace}
+      />
+
+      <SourceControlDrawer
+        visible={sourceControlVisible}
+        onClose={() => setSourceControlVisible(false)}
+        onGitActionComplete={() => setRefreshTrigger(prev => prev + 1)}
       />
     </ScreenContainer>
   );

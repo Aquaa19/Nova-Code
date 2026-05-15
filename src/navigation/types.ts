@@ -5,10 +5,16 @@ export type EditorStackParamList = {
   OpenFile: { filePath: string; language?: string };
 };
 
+export type RootStackParamList = {
+  Auth: undefined;
+  Main: undefined;
+};
+
 export type RootTabParamList = {
   Files: undefined;
   Editor: EditorStackParamList;
   Terminal: undefined;
   Search: undefined;
   Packages: undefined;
+  Settings: undefined;
 };

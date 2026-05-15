@@ -96,6 +96,14 @@ class GitServiceClass {
       return false;
     }
   }
+
+  async addRemote(dir: string, remote: string, url: string): Promise<void> {
+    await git.addRemote({ fs, dir, remote, url });
+  }
+
+  async listRemotes(dir: string): Promise<Array<{ remote: string; url: string }>> {
+    return git.listRemotes({ fs, dir });
+  }
 }
 
 export const GitService = new GitServiceClass();

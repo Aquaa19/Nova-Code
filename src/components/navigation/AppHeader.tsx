@@ -8,8 +8,8 @@ interface AppHeaderProps {
   title?: string;
   leftIcon?: string;
   rightIcon?: string;
-  onMenuPress?: () => void;
-  onSearchPress?: () => void;
+  onLeftPress?: () => void; // Generic name
+  onRightPress?: () => void; // Generic name
   variant?: 'default' | 'transparent';
   style?: ViewStyle;
 }
@@ -18,24 +18,18 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   title,
   leftIcon = 'menu',
   rightIcon = 'magnify',
-  onMenuPress,
-  onSearchPress,
+  onLeftPress,
+  onRightPress,
   variant = 'default',
   style,
 }) => {
   const isTransparent = variant === 'transparent';
 
   return (
-    <View
-      style={[
-        styles.container,
-        !isTransparent && styles.solidBackground,
-        style,
-      ]}
-    >
+    <View style={[styles.container, !isTransparent && styles.solidBackground, style]}>
       <View style={styles.leftContent}>
-        {onMenuPress && (
-          <IconButton icon={leftIcon} onPress={onMenuPress} size={24} style={styles.iconButton} />
+        {onLeftPress && (
+          <IconButton icon={leftIcon} onPress={onLeftPress} size={24} style={styles.iconButton} />
         )}
         {title && (
           <AppText variant="headlineMd" style={styles.title} numberOfLines={1}>
@@ -44,8 +38,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         )}
       </View>
       <View style={styles.rightContent}>
-        {onSearchPress && (
-          <IconButton icon={rightIcon} onPress={onSearchPress} size={24} />
+        {onRightPress && (
+          <IconButton icon={rightIcon} onPress={onRightPress} size={24} />
         )}
       </View>
     </View>
@@ -54,14 +48,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    height: theme.spacing.headerHeight,
+    paddingTop: theme.spacing.safeTopFallback,
+    paddingBottom: theme.spacing.s2,
+    minHeight: theme.spacing.headerHeight + theme.spacing.safeTopFallback,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: theme.spacing.gutter,
   },
   solidBackground: {
-    backgroundColor: 'rgba(17, 19, 28, 0.8)', // surface with opacity
+    backgroundColor: 'rgba(17, 19, 28, 0.8)',
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },

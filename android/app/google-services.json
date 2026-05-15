@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "532169711828",
+    "project_id": "nova-code-6c5a2",
+    "storage_bucket": "nova-code-6c5a2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:532169711828:android:5eb71c156ce6b4f3badb41",
+        "android_client_info": {
+          "package_name": "com.novacode"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyARNE8G1GBkwLsQypDknLDhZrcRya1G5R8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

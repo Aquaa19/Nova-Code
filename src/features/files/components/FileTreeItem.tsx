@@ -8,11 +8,17 @@ import { theme } from '../../../theme';
 import { FileNode } from '../../../services/FileService';
 import { getFileIcon } from '../utils/fileIcons';
 
+export interface GitBadgeProps {
+  text: string;
+  color: string;
+}
+
 interface FileTreeItemProps {
   node: FileNode;
   depth: number;
   isExpanded: boolean;
-  selected?: boolean; // Kept for your existing selection styling
+  selected?: boolean;
+  gitBadge?: GitBadgeProps; // NEW: Git status badge
   onPress: () => void;
   onLongPress: () => void;
 }
@@ -22,13 +28,12 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = React.memo(({
   depth,
   isExpanded,
   selected = false,
+  gitBadge,
   onPress,
   onLongPress,
 }) => {
-  // Pull the dynamic icon and color based on extension/directory status
   const { icon, color } = getFileIcon(node.extension, node.isDirectory, isExpanded);
   
-  // Keep your existing depth spacing logic
   const paddingLeft = theme.spacing.s2 + (depth * theme.spacing.s4);
 
   return (
@@ -50,11 +55,10 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = React.memo(({
             color={theme.colors.onSurfaceVariant}
           />
         ) : (
-          <View style={{ width: 16 }} /> // Placeholder for alignment
+          <View style={{ width: 16 }} />
         )}
       </View>
       
-      {/* Dynamic File/Folder Icon */}
       <MaterialCommunityIcons name={icon} size={18} color={color} style={styles.fileIcon} />
       
       <AppText
@@ -65,6 +69,15 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = React.memo(({
       >
         {node.name}
       </AppText>
+
+      {/* NEW: Git Status Badge */}
+      {gitBadge && (
+        <View style={[styles.badge, { backgroundColor: gitBadge.color + '15' }]}>
+          <AppText variant="labelXs" color={gitBadge.color} style={styles.badgeText}>
+            {gitBadge.text}
+          </AppText>
+        </View>
+      )}
     </Pressable>
   );
 });
@@ -94,5 +107,16 @@ const styles = StyleSheet.create({
   },
   label: {
     flex: 1,
+  },
+  badge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: theme.radius.xs,
+    marginLeft: 8,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  badgeText: {
+    fontWeight: 'bold',
   },
 });

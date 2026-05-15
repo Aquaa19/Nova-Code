@@ -119,7 +119,7 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
       <AppHeader
         title={activeFile ? activeFile.path.split('/').pop() : 'Nova Code'}
         leftIcon="menu"
-        onMenuPress={() => setIsDrawerOpen(true)}
+        onLeftPress={() => setIsDrawerOpen(true)}
         rightIcon="magnify"
         variant="transparent"
       />

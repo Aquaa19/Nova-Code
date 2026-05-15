@@ -3,6 +3,7 @@ export const spacing = {
   gutter: 16,
   screenMargin: 20,
   safeBottomFallback: 16,
+  safeTopFallback: 20,
   minTouchTarget: 44,
   headerHeight: 64,
   bottomTabHeight: 80,
