@@ -1,53 +1,40 @@
+// src/features/files/components/FileTreeItem.tsx
+
 import React from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AppText } from '../../../components/typography/AppText';
 import { theme } from '../../../theme';
-
-interface FileNodeData {
-  id: string;
-  name: string;
-  isDirectory: boolean;
-}
+import { FileNode } from '../../../services/FileService';
+import { getFileIcon } from '../utils/fileIcons';
 
 interface FileTreeItemProps {
-  node: FileNodeData;
+  node: FileNode;
   depth: number;
-  expanded: boolean;
-  selected: boolean;
-  onToggle: () => void;
+  isExpanded: boolean;
+  selected?: boolean; // Kept for your existing selection styling
   onPress: () => void;
+  onLongPress: () => void;
 }
 
-export const FileTreeItem: React.FC<FileTreeItemProps> = ({
+export const FileTreeItem: React.FC<FileTreeItemProps> = React.memo(({
   node,
   depth,
-  expanded,
-  selected,
-  onToggle,
+  isExpanded,
+  selected = false,
   onPress,
+  onLongPress,
 }) => {
-  const getIcon = () => {
-    if (node.isDirectory) {
-      return expanded ? 'folder-open' : 'folder';
-    }
-    return 'file-document-outline'; // Could be enhanced with specific file type icons
-  };
-
-  const iconColor = node.isDirectory ? theme.colors.primaryFixedDim : theme.colors.onSurfaceVariant;
+  // Pull the dynamic icon and color based on extension/directory status
+  const { icon, color } = getFileIcon(node.extension, node.isDirectory, isExpanded);
+  
+  // Keep your existing depth spacing logic
   const paddingLeft = theme.spacing.s2 + (depth * theme.spacing.s4);
-
-  const handlePress = () => {
-    if (node.isDirectory) {
-      onToggle();
-    } else {
-      onPress();
-    }
-  };
 
   return (
     <Pressable
-      onPress={handlePress}
+      onPress={onPress}
+      onLongPress={onLongPress}
       style={({ pressed }) => [
         styles.container,
         { paddingLeft },
@@ -58,7 +45,7 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
       <View style={styles.iconContainer}>
         {node.isDirectory ? (
           <MaterialCommunityIcons
-            name={expanded ? 'chevron-down' : 'chevron-right'}
+            name={isExpanded ? 'chevron-down' : 'chevron-right'}
             size={16}
             color={theme.colors.onSurfaceVariant}
           />
@@ -67,7 +54,8 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
         )}
       </View>
       
-      <MaterialCommunityIcons name={getIcon()} size={18} color={iconColor} style={styles.fileIcon} />
+      {/* Dynamic File/Folder Icon */}
+      <MaterialCommunityIcons name={icon} size={18} color={color} style={styles.fileIcon} />
       
       <AppText
         variant="bodyMd"
@@ -79,7 +67,7 @@ export const FileTreeItem: React.FC<FileTreeItemProps> = ({
       </AppText>
     </Pressable>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {

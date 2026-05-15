@@ -1,56 +1,81 @@
-import React from 'react';
+// src/features/files/components/FileTree.tsx
+
+import React, { useEffect, useMemo } from 'react';
 import { View, StyleSheet, FlatList } from 'react-native';
 import { FileTreeItem } from './FileTreeItem';
-
-export interface FileNode {
-  id: string;
-  name: string;
-  path: string;
-  isDirectory: boolean;
-  isExpanded?: boolean;
-  children?: FileNode[];
-}
+import { useFileTree } from '../hooks/useFileTree';
+import { FileNode } from '../../../services/FileService';
+import { AppText } from '../../../components/typography/AppText';
 
 interface FileTreeProps {
-  nodes: FileNode[];
-  selectedId?: string;
-  onToggle: (id: string) => void;
-  onPress: (node: FileNode) => void;
+  rootPath: string;
+  selectedPath?: string; // Updated to match file paths instead of abstract IDs
+  onFilePress: (node: FileNode) => void;
+  onFileLongPress: (node: FileNode) => void;
 }
 
 export const FileTree: React.FC<FileTreeProps> = ({
-  nodes,
-  selectedId,
-  onToggle,
-  onPress,
+  rootPath,
+  selectedPath,
+  onFilePress,
+  onFileLongPress,
 }) => {
-  // Flatten tree for FlatList based on expanded state
-  const flattenNodes = (nodesToFlatten: FileNode[], depth = 0): (FileNode & { depth: number })[] => {
-    let result: (FileNode & { depth: number })[] = [];
-    for (const node of nodesToFlatten) {
-      result.push({ ...node, depth });
-      if (node.isDirectory && node.isExpanded && node.children) {
-        result = result.concat(flattenNodes(node.children, depth + 1));
-      }
-    }
-    return result;
-  };
+  const { expandedPaths, nodeChildren, toggleExpand, loadChildren, error } = useFileTree(rootPath);
 
-  const flattenedData = flattenNodes(nodes);
+  // Load the root directory contents when the component mounts or path changes
+  useEffect(() => {
+    loadChildren(rootPath);
+  }, [rootPath, loadChildren]);
+
+  // Flatten the dynamic dictionary into a single array for FlatList performance
+  const flattenedData = useMemo(() => {
+    const flatten = (nodesToFlatten: FileNode[], depth = 0): (FileNode & { depth: number })[] => {
+      let result: (FileNode & { depth: number })[] = [];
+      for (const node of nodesToFlatten) {
+        result.push({ ...node, depth });
+        
+        // If it's an expanded directory, recursively append its loaded children
+        if (node.isDirectory && expandedPaths.has(node.path)) {
+          const children = nodeChildren[node.path];
+          if (children) {
+            result = result.concat(flatten(children, depth + 1));
+          }
+        }
+      }
+      return result;
+    };
+
+    // The root path itself isn't a rendered item, just the container for the first level
+    return flatten(nodeChildren[rootPath] || []);
+  }, [nodeChildren, expandedPaths, rootPath]);
+
+  if (error) {
+    return (
+      <View style={styles.centerContainer}>
+        <AppText color="red">{error}</AppText>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <FlatList
         data={flattenedData}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.path} // File paths are naturally unique keys
         renderItem={({ item }) => (
           <FileTreeItem
             node={item}
             depth={item.depth}
-            expanded={!!item.isExpanded}
-            selected={item.id === selectedId}
-            onToggle={() => onToggle(item.id)}
-            onPress={() => onPress(item)}
+            isExpanded={expandedPaths.has(item.path)}
+            selected={item.path === selectedPath}
+            onPress={() => {
+              if (item.isDirectory) {
+                toggleExpand(item.path);
+              } else {
+                onFilePress(item);
+              }
+            }}
+            onLongPress={() => onFileLongPress(item)}
           />
         )}
         showsVerticalScrollIndicator={false}
@@ -63,4 +88,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  centerContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+  }
 });
