@@ -8,8 +8,9 @@ interface AppHeaderProps {
   title?: string;
   leftIcon?: string;
   rightIcon?: string;
-  onLeftPress?: () => void; // Generic name
-  onRightPress?: () => void; // Generic name
+  onLeftPress?: () => void;
+  onRightPress?: () => void;
+  centerComponent?: React.ReactNode;
   variant?: 'default' | 'transparent';
   style?: ViewStyle;
 }
@@ -20,6 +21,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
   rightIcon = 'magnify',
   onLeftPress,
   onRightPress,
+  centerComponent,
   variant = 'default',
   style,
 }) => {
@@ -37,6 +39,13 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           </AppText>
         )}
       </View>
+      
+      {centerComponent && (
+        <View style={styles.centerContainer}>
+          {centerComponent}
+        </View>
+      )}
+
       <View style={styles.rightContent}>
         {onRightPress && (
           <IconButton icon={rightIcon} onPress={onRightPress} size={24} />
@@ -66,6 +75,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
+  centerContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   title: {
     marginLeft: theme.spacing.s2,
     flex: 1,
@@ -76,5 +90,7 @@ const styles = StyleSheet.create({
   rightContent: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'flex-end',
+    flex: 1,
   },
 });

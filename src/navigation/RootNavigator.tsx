@@ -7,8 +7,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 
 import { FileExplorerScreen } from '../screens/FileExplorerScreen';
-import { TerminalScreen } from '../screens/TerminalScreen';
-import { GlobalSearchScreen } from '../screens/GlobalSearchScreen';
 import { PackageManagerScreen } from '../screens/PackageManagerScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
 import { AuthScreen } from '../screens/AuthScreen';
@@ -23,8 +21,6 @@ const getIconForRoute = (routeName: string): string => {
   switch (routeName) {
     case 'Files': return 'folder-outline';
     case 'Editor': return 'code-braces';
-    case 'Terminal': return 'console';
-    case 'Search': return 'magnify';
     case 'Packages': return 'package-variant';
     case 'Settings': return 'account-outline';
     default: return 'circle-outline';
@@ -57,8 +53,6 @@ function MainTabs() {
     >
       <Tab.Screen name="Files" component={FileExplorerScreen} />
       <Tab.Screen name="Editor" component={EditorStack} />
-      <Tab.Screen name="Terminal" component={TerminalScreen} />
-      <Tab.Screen name="Search" component={GlobalSearchScreen} />
       <Tab.Screen name="Packages" component={PackageManagerScreen} />
       <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>
@@ -77,7 +71,7 @@ export function RootNavigator() {
     return subscriber; // unsubscribe on unmount
   }, []);
 
-  if (initializing) return null; // Or a splash screen
+  if (initializing) return null;
 
   return (
     <NavigationContainer>

@@ -7,10 +7,16 @@ interface Settings {
   theme: 'dark' | 'light';
   fontSize: number;
   tabWidth: number;
-  pistonApiUrl: string;
-  autosaveIntervalMs: number;
+  engineUrl: string;
+  engineAuthToken: string;
+  autosaveEnabled: boolean;
+  autosaveDelayMs: number;
   wordWrap: boolean;
   minimap: boolean;
+  // Git Profile
+  gitAuthorName: string;
+  gitAuthorEmail: string;
+  gitPAT: string;
 }
 
 interface SettingsStore extends Settings {
@@ -21,10 +27,15 @@ const defaults: Settings = {
   theme: 'dark',
   fontSize: 14,
   tabWidth: 2,
-  pistonApiUrl: 'https://emkc.org/api/v2/piston',
-  autosaveIntervalMs: 30000,
+  engineUrl: 'ws://192.168.1.100:3000',
+  engineAuthToken: 'nova-super-secret-token',
+  autosaveEnabled: true,
+  autosaveDelayMs: 1000,
   wordWrap: true,
   minimap: false,
+  gitAuthorName: '',
+  gitAuthorEmail: '',
+  gitPAT: '',
 };
 
 const persisted: Partial<Settings> = JSON.parse(storage.getString('settings') ?? '{}');
@@ -33,8 +44,9 @@ export const useSettingsStore = create<SettingsStore>(set => ({
   ...defaults,
   ...persisted,
   update: partial => set(s => {
-    const next = { ...s, ...partial };
-    storage.set('settings', JSON.stringify(next));
-    return next;
+    const updated = { ...s, ...partial };
+    const { update, ...data } = updated;
+    storage.set('settings', JSON.stringify(data));
+    return updated;
   }),
 }));

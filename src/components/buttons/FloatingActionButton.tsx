@@ -8,6 +8,7 @@ interface FloatingActionButtonProps {
   position?: 'bottom-right' | 'bottom-center';
   color?: string;
   onPress: () => void;
+  disabled?: boolean;
   loading?: boolean;
 }
 
@@ -16,19 +17,21 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   position = 'bottom-right',
   color = theme.colors.primaryFixed,
   onPress,
+  disabled = false,
   loading = false,
 }) => {
   const positionStyles = position === 'bottom-right' ? styles.bottomRight : styles.bottomCenter;
 
   return (
     <Pressable
-      onPress={loading ? undefined : onPress}
+      onPress={(loading || disabled) ? undefined : onPress}
       style={({ pressed }) => [
         styles.container,
         positionStyles,
         { backgroundColor: color, shadowColor: color },
         theme.shadows.fabGlow,
-        pressed && styles.pressed,
+        pressed && !disabled && styles.pressed,
+        disabled && styles.disabled,
       ]}
     >
       {loading ? (
@@ -60,5 +63,8 @@ const styles = StyleSheet.create({
   pressed: {
     transform: [{ scale: 0.95 }],
     opacity: 0.9,
+  },
+  disabled: {
+    opacity: 0.4,
   },
 });

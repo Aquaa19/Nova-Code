@@ -1,103 +1,137 @@
+// src/features/packages/components/PackageCard.tsx
+
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Pressable, Animated } from 'react-native';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { GlassCard } from '../../../components/cards/GlassCard';
 import { AppText } from '../../../components/typography/AppText';
-import { RegistryBadge } from '../../../components/badges/RegistryBadge';
-import { ActionCircleButton } from '../../../components/buttons/ActionCircleButton';
 import { theme } from '../../../theme';
 
 export interface PackageData {
   id: string;
   name: string;
-  description: string;
   version: string;
-  registry: 'npm' | 'pip' | 'maven' | string;
-  status?: 'installed' | 'outdated' | 'available';
+  description: string;
+  isInstalled?: boolean;
 }
 
 interface PackageCardProps {
   pkg: PackageData;
-  onDelete?: (id: string) => void;
-  onUpgrade?: (id: string) => void;
-  onInstall?: (id: string) => void;
+  onInstall: (pkg: PackageData) => void;
+  onRemove?: (pkg: PackageData) => void;
 }
 
-export const PackageCard: React.FC<PackageCardProps> = ({
-  pkg,
-  onDelete,
-  onUpgrade,
-  onInstall,
-}) => {
+export const PackageCard: React.FC<PackageCardProps> = React.memo(({ pkg, onInstall, onRemove }) => {
+  // Simple scale animation for the install button
+  const scaleAnim = React.useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 0.92,
+      useNativeDriver: true,
+      speed: 20,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      speed: 20,
+    }).start();
+  };
+
   return (
-    <GlassCard style={styles.container}>
+    <GlassCard padding="s4" style={styles.card}>
       <View style={styles.header}>
-        <AppText variant="bodyMd" style={styles.name}>{pkg.name}</AppText>
-        <RegistryBadge type={pkg.registry} />
+        <View style={styles.titleRow}>
+          <AppText variant="headlineSm" color={theme.colors.onSurface} style={styles.name}>
+            {pkg.name}
+          </AppText>
+          <View style={styles.versionBadge}>
+            <AppText variant="labelXs" color={theme.colors.onSurfaceVariant}>
+              v{pkg.version}
+            </AppText>
+          </View>
+        </View>
+
+        {pkg.isInstalled ? (
+          <Pressable 
+            style={[styles.actionButton, styles.removeButton]} 
+            onPress={() => onRemove?.(pkg)}
+          >
+            <MaterialCommunityIcons name="trash-can-outline" size={16} color={theme.colors.error} />
+          </Pressable>
+        ) : (
+          <Pressable
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+            onPress={() => onInstall(pkg)}
+          >
+            <Animated.View style={[styles.actionButton, styles.installButton, { transform: [{ scale: scaleAnim }] }]}>
+              <MaterialCommunityIcons name="download" size={16} color={theme.colors.background} style={styles.installIcon} />
+              <AppText variant="labelSm" color={theme.colors.background}>
+                Install
+              </AppText>
+            </Animated.View>
+          </Pressable>
+        )}
       </View>
-      <AppText variant="labelXs" color={theme.colors.onSurfaceVariant} numberOfLines={2} style={styles.description}>
+
+      <AppText variant="bodySm" color={theme.colors.onSurfaceVariant} numberOfLines={2} style={styles.description}>
         {pkg.description}
       </AppText>
-      <View style={styles.footer}>
-        <AppText variant="labelXs" color={theme.colors.onSurfaceVariant}>
-          v{pkg.version}
-        </AppText>
-        <View style={styles.actions}>
-          {pkg.status === 'outdated' && onUpgrade && (
-            <ActionCircleButton
-              icon="arrow-up-circle-outline"
-              tone="primary"
-              onPress={() => onUpgrade(pkg.id)}
-              style={styles.actionButton}
-            />
-          )}
-          {(pkg.status === 'installed' || pkg.status === 'outdated') && onDelete && (
-            <ActionCircleButton
-              icon="delete-outline"
-              tone="danger"
-              onPress={() => onDelete(pkg.id)}
-            />
-          )}
-          {pkg.status === 'available' && onInstall && (
-            <ActionCircleButton
-              icon="download-outline"
-              tone="success"
-              onPress={() => onInstall(pkg.id)}
-            />
-          )}
-        </View>
-      </View>
     </GlassCard>
   );
-};
+});
 
 const styles = StyleSheet.create({
-  container: {
+  card: {
     marginBottom: theme.spacing.s3,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.03)',
   },
   header: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
     marginBottom: theme.spacing.s2,
   },
-  name: {
+  titleRow: {
     flex: 1,
-    marginRight: theme.spacing.s2,
-    fontWeight: '600',
-  },
-  description: {
-    marginBottom: theme.spacing.s3,
-    lineHeight: 18,
-  },
-  footer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    marginRight: theme.spacing.s3,
   },
-  actions: {
-    flexDirection: 'row',
+  name: {
+    marginRight: theme.spacing.s2,
+  },
+  versionBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: theme.radius.sm,
+    marginTop: 2,
+  },
+  description: {
+    lineHeight: 20,
   },
   actionButton: {
-    marginRight: theme.spacing.s2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.s3,
+    paddingVertical: 6,
+    borderRadius: theme.radius.sm,
+  },
+  installButton: {
+    backgroundColor: theme.colors.primaryFixed,
+  },
+  installIcon: {
+    marginRight: 4,
+  },
+  removeButton: {
+    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+    paddingHorizontal: 8,
   },
 });

@@ -10,24 +10,44 @@ export function useAutosave(
   currentPath: string | null,
 ) {
   const { markSaved } = useEditorStore();
-  const { autosaveIntervalMs } = useSettingsStore();
-  const timer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { autosaveEnabled, autosaveDelayMs } = useSettingsStore();
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const getContentRef = useRef(getContent);
+  const currentPathRef = useRef(currentPath);
 
+  // Keep refs current so the timeout always uses the latest values
+  getContentRef.current = getContent;
+  currentPathRef.current = currentPath;
+
+  // Re-arm the debounce timer whenever the path or settings change
   useEffect(() => {
-    if (!getContent || !currentPath) return;
+    if (!autosaveEnabled || !getContent || !currentPath) return;
 
-    timer.current = setInterval(async () => {
-      try {
-        const content = await getContent();
-        await FileService.writeFile(currentPath, content);
-        markSaved(currentPath);
-      } catch (e) {
-        console.warn('Autosave failed:', e);
-      }
-    }, autosaveIntervalMs);
+    // Clear any pending save when file switches
+    if (timer.current) clearTimeout(timer.current);
 
     return () => {
-      if (timer.current) clearInterval(timer.current);
+      if (timer.current) clearTimeout(timer.current);
     };
-  }, [getContent, currentPath, autosaveIntervalMs, markSaved]);
+  }, [currentPath, autosaveEnabled, autosaveDelayMs, getContent]);
+
+  // Exposed trigger — call this on every content change
+  const triggerAutosave = () => {
+    if (!autosaveEnabled) return;
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(async () => {
+      const path = currentPathRef.current;
+      const fn = getContentRef.current;
+      if (!path || !fn) return;
+      try {
+        const content = await fn();
+        await FileService.writeFile(path, content);
+        markSaved(path);
+      } catch (e) {
+        console.warn('[Autosave] failed:', e);
+      }
+    }, autosaveDelayMs);
+  };
+
+  return { triggerAutosave };
 }
