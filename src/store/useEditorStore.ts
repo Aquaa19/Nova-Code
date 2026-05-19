@@ -8,6 +8,7 @@ export interface OpenFile {
   unsaved: boolean;
   cursorLine: number;
   cursorCol: number;
+  isBinary?: boolean; // Protect editor from parsing buffers/images
 }
 
 interface EditorStore {
@@ -18,22 +19,37 @@ interface EditorStore {
   setActiveIndex: (index: number) => void;
   markUnsaved: (path: string) => void;
   markSaved: (path: string) => void;
+  updateCursor: (path: string, line: number, col: number) => void;
+  clearFiles: () => void;
 }
 
 export const useEditorStore = create<EditorStore>(set => ({
   openFiles: [],
   activeIndex: 0,
-  openFile: file => set(s => ({
-    openFiles: s.openFiles.find(f => f.path === file.path)
-      ? s.openFiles
-      : [...s.openFiles, file],
-    activeIndex: s.openFiles.findIndex(f => f.path === file.path) === -1
-      ? s.openFiles.length
-      : s.openFiles.findIndex(f => f.path === file.path),
-  })),
+  openFile: file => set(s => {
+    const existingIndex = s.openFiles.findIndex(f => f.path === file.path);
+    if (existingIndex !== -1) {
+      return { activeIndex: existingIndex };
+    }
+    return {
+      openFiles: [...s.openFiles, file],
+      activeIndex: s.openFiles.length,
+    };
+  }),
   closeFile: path => set(s => {
-    const next = s.openFiles.filter(f => f.path !== path);
-    return { openFiles: next, activeIndex: Math.max(0, s.activeIndex - 1) };
+    const closedIndex = s.openFiles.findIndex(f => f.path === path);
+    if (closedIndex === -1) return s;
+
+    const nextFiles = s.openFiles.filter(f => f.path !== path);
+    let nextIndex = s.activeIndex;
+
+    if (closedIndex < s.activeIndex) {
+      nextIndex--;
+    } else if (closedIndex === s.activeIndex && nextIndex >= nextFiles.length) {
+      nextIndex = Math.max(0, nextFiles.length - 1);
+    }
+
+    return { openFiles: nextFiles, activeIndex: nextIndex };
   }),
   setActiveIndex: activeIndex => set({ activeIndex }),
   markUnsaved: path => set(s => ({
@@ -42,4 +58,8 @@ export const useEditorStore = create<EditorStore>(set => ({
   markSaved: path => set(s => ({
     openFiles: s.openFiles.map(f => f.path === path ? { ...f, unsaved: false } : f),
   })),
+  updateCursor: (path, line, col) => set(s => ({
+    openFiles: s.openFiles.map(f => f.path === path ? { ...f, cursorLine: line, cursorCol: col } : f),
+  })),
+  clearFiles: () => set({ openFiles: [], activeIndex: 0 }),
 }));

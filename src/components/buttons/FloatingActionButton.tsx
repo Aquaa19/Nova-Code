@@ -5,11 +5,12 @@ import { theme } from '../../theme';
 
 interface FloatingActionButtonProps {
   icon: string;
-  position?: 'bottom-right' | 'bottom-center';
+  position?: 'bottom-right' | 'bottom-center' | 'none';
   color?: string;
   onPress: () => void;
   disabled?: boolean;
   loading?: boolean;
+  style?:any;
 }
 
 export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
@@ -19,8 +20,11 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
   onPress,
   disabled = false,
   loading = false,
+  style,
 }) => {
-  const positionStyles = position === 'bottom-right' ? styles.bottomRight : styles.bottomCenter;
+  const positionStyles = 
+    position === 'bottom-right' ? styles.bottomRight : 
+    position === 'bottom-center' ? styles.bottomCenter : {};
 
   return (
     <Pressable
@@ -28,10 +32,12 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
       style={({ pressed }) => [
         styles.container,
         positionStyles,
+        position === 'none' && { position: 'relative', bottom: 0, right: 0 },
         { backgroundColor: color, shadowColor: color },
         theme.shadows.fabGlow,
         pressed && !disabled && styles.pressed,
         disabled && styles.disabled,
+        style,
       ]}
     >
       {loading ? (

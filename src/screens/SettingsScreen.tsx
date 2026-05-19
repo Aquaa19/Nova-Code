@@ -16,6 +16,7 @@ import { ScreenContainer } from '../components/layout/ScreenContainer';
 import { GlassPanel } from '../components/panels/GlassPanel';
 import { GlassCard } from '../components/cards/GlassCard';
 import { AppText } from '../components/typography/AppText';
+import { IconButton } from '../components/buttons/IconButton';
 import { theme } from '../theme';
 import { useSettingsStore } from '../store/useSettingsStore';
 
@@ -33,14 +34,6 @@ export const SettingsScreen: React.FC = () => {
       ]
     );
   };
-
-  const renderPreferenceItem = (icon: string, label: string, value: string) => (
-    <GlassCard padding="s3" style={styles.preferenceCard}>
-      <MaterialCommunityIcons name={icon} size={24} color={theme.colors.primaryFixed} />
-      <AppText variant="labelSm" style={styles.prefLabel}>{label}</AppText>
-      <AppText variant="labelXs" color={theme.colors.primaryFixed}>{value}</AppText>
-    </GlassCard>
-  );
 
   const renderGitField = (icon: string, label: string, value: string, key: keyof typeof settings, secure = false) => (
     <GlassCard padding="s3" style={styles.gitCard}>
@@ -134,17 +127,85 @@ export const SettingsScreen: React.FC = () => {
         {/* ── Editor Preferences ── */}
         <View style={styles.section}>
           <AppText variant="labelXs" color={theme.colors.onSurfaceVariant} style={styles.sectionTitle}>EDITOR PREFERENCES</AppText>
-          <View style={styles.grid}>
-            <View style={styles.gridItem}>
-              {renderPreferenceItem('palette-outline', 'Theme', 'Liquid Glass')}
+          
+          {/* Theme */}
+          <GlassCard padding="s3" style={[styles.settingItem, { marginBottom: theme.spacing.s2 }]}>
+            <View style={styles.settingLeft}>
+              <View style={styles.iconContainer}>
+                <MaterialCommunityIcons name="theme-light-dark" size={20} color={theme.colors.primaryFixed} />
+              </View>
+              <View style={{ marginLeft: theme.spacing.s3 }}>
+                <AppText variant="bodyMd">Dark Theme</AppText>
+              </View>
             </View>
-            <View style={styles.gridItem}>
-              {renderPreferenceItem('format-text', 'Font Size', `${settings.fontSize}px`)}
+            <Switch 
+              value={settings.theme === 'dark'} 
+              onValueChange={(val) => settings.update({ theme: val ? 'dark' : 'light' })} 
+              trackColor={{ false: 'rgba(255,255,255,0.1)', true: theme.colors.primaryFixed }}
+              thumbColor={theme.colors.onSurface}
+            />
+          </GlassCard>
+
+          {/* Font Size */}
+          <GlassCard padding="s3" style={[styles.settingItem, { marginBottom: theme.spacing.s2 }]}>
+            <View style={styles.settingLeft}>
+              <View style={styles.iconContainer}>
+                <MaterialCommunityIcons name="format-size" size={20} color={theme.colors.primaryFixed} />
+              </View>
+              <View style={{ marginLeft: theme.spacing.s3 }}>
+                <AppText variant="bodyMd">Font Size</AppText>
+              </View>
             </View>
-            <View style={styles.gridItem}>
-              {renderPreferenceItem('keyboard-tab', 'Tab Size', `${settings.tabWidth} Spaces`)}
+            <View style={styles.modifierRow}>
+              <IconButton icon="minus" size={16} onPress={() => settings.update({ fontSize: Math.max(8, settings.fontSize - 1) })} />
+              <AppText variant="bodyMd" style={{ marginHorizontal: 8, width: 24, textAlign: 'center' }}>{settings.fontSize}</AppText>
+              <IconButton icon="plus" size={16} onPress={() => settings.update({ fontSize: Math.min(32, settings.fontSize + 1) })} />
             </View>
-          </View>
+          </GlassCard>
+
+          {/* Tab Size */}
+          <GlassCard padding="s3" style={[styles.settingItem, { marginBottom: theme.spacing.s2 }]}>
+            <View style={styles.settingLeft}>
+              <View style={styles.iconContainer}>
+                <MaterialCommunityIcons name="keyboard-tab" size={20} color={theme.colors.primaryFixed} />
+              </View>
+              <View style={{ marginLeft: theme.spacing.s3 }}>
+                <AppText variant="bodyMd">Tab Size</AppText>
+              </View>
+            </View>
+            <View style={styles.modifierRow}>
+              <Pressable 
+                style={[styles.togglePill, settings.tabWidth === 2 && styles.togglePillActive]} 
+                onPress={() => settings.update({ tabWidth: 2 })}
+              >
+                <AppText variant="labelSm" color={settings.tabWidth === 2 ? '#000' : theme.colors.onSurfaceVariant}>2</AppText>
+              </Pressable>
+              <Pressable 
+                style={[styles.togglePill, settings.tabWidth === 4 && styles.togglePillActive]} 
+                onPress={() => settings.update({ tabWidth: 4 })}
+              >
+                <AppText variant="labelSm" color={settings.tabWidth === 4 ? '#000' : theme.colors.onSurfaceVariant}>4</AppText>
+              </Pressable>
+            </View>
+          </GlassCard>
+
+          {/* Line Numbers */}
+          <GlassCard padding="s3" style={styles.settingItem}>
+            <View style={styles.settingLeft}>
+              <View style={styles.iconContainer}>
+                <MaterialCommunityIcons name="format-list-numbered" size={20} color={theme.colors.primaryFixed} />
+              </View>
+              <View style={{ marginLeft: theme.spacing.s3 }}>
+                <AppText variant="bodyMd">Line Numbers</AppText>
+              </View>
+            </View>
+            <Switch 
+              value={settings.lineNumbers} 
+              onValueChange={(val) => settings.update({ lineNumbers: val })} 
+              trackColor={{ false: 'rgba(255,255,255,0.1)', true: theme.colors.primaryFixed }}
+              thumbColor={theme.colors.onSurface}
+            />
+          </GlassCard>
         </View>
 
         {/* ── Autosave ── */}
@@ -200,9 +261,11 @@ export const SettingsScreen: React.FC = () => {
           <GlassCard padding="s3" style={styles.settingItem}>
             <View style={styles.settingLeft}>
               <View style={styles.iconContainer}>
-                <MaterialCommunityIcons name="cloud-sync" size={20} color={theme.colors.primaryFixed} />
+                <MaterialCommunityIcons name="format-text-wrapping" size={20} color={theme.colors.primaryFixed} />
               </View>
-              <AppText variant="bodyMd">Cloud Sync</AppText>
+              <View style={{ marginLeft: theme.spacing.s3 }}>
+                 <AppText variant="bodyMd">Word Wrap</AppText>
+              </View>
             </View>
             <Switch 
               value={settings.wordWrap} 
@@ -325,30 +388,14 @@ const styles = StyleSheet.create({
   gitInput: {
     color: theme.colors.onSurface,
     fontSize: 15,
-    padding: 0, // Remove default padding to align with label
-  },
-  grid: {
-    flexDirection: 'row',
-    marginHorizontal: -theme.spacing.s2,
-  },
-  gridItem: {
-    flex: 1,
-    paddingHorizontal: theme.spacing.s2,
-  },
-  preferenceCard: {
-    alignItems: 'center',
-    paddingVertical: theme.spacing.s4,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.03)',
-  },
-  prefLabel: {
-    marginTop: theme.spacing.s2,
-    marginBottom: 2,
+    padding: 0,
   },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.03)',
   },
   settingLeft: {
     flexDirection: 'row',
@@ -361,6 +408,21 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 240, 255, 0.05)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  modifierRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    borderRadius: theme.radius.sm,
+    padding: 4,
+  },
+  togglePill: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  togglePillActive: {
+    backgroundColor: theme.colors.primaryFixed,
   },
   delayInput: {
     backgroundColor: 'rgba(0,0,0,0.2)',

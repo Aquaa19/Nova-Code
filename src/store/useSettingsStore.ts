@@ -3,7 +3,7 @@
 import { create } from 'zustand';
 import { storage } from '../storage/mmkv';
 
-interface Settings {
+export interface Settings {
   theme: 'dark' | 'light';
   fontSize: number;
   tabWidth: number;
@@ -13,6 +13,7 @@ interface Settings {
   autosaveDelayMs: number;
   wordWrap: boolean;
   minimap: boolean;
+  lineNumbers: boolean; // Added line numbers setting
   // Git Profile
   gitAuthorName: string;
   gitAuthorEmail: string;
@@ -27,12 +28,13 @@ const defaults: Settings = {
   theme: 'dark',
   fontSize: 14,
   tabWidth: 2,
-  engineUrl: 'ws://192.168.1.100:3000',
+  engineUrl: 'ws://192.168.0.152:3000',
   engineAuthToken: 'nova-super-secret-token',
   autosaveEnabled: true,
   autosaveDelayMs: 1000,
   wordWrap: true,
   minimap: false,
+  lineNumbers: true, // Default to true
   gitAuthorName: '',
   gitAuthorEmail: '',
   gitPAT: '',

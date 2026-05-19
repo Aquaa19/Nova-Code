@@ -17,63 +17,106 @@ export interface FileNode {
 class FileServiceClass {
   // Initialise projects directory on app start
   async init(): Promise<void> {
-    const exists = await RNFS.exists(PROJECTS_ROOT);
-    if (!exists) {
-      await RNFS.mkdir(PROJECTS_ROOT);
+    try {
+      const exists = await RNFS.exists(PROJECTS_ROOT);
+      if (!exists) {
+        await RNFS.mkdir(PROJECTS_ROOT);
+      }
+    } catch (error) {
+      throw new Error(`Failed to initialize projects directory: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
   async readDir(path: string): Promise<FileNode[]> {
-    const items = await RNFS.readDir(path);
-    return items.map(item => ({
-      name: item.name,
-      path: item.path,
-      isDirectory: item.isDirectory(),
-      size: item.size,
-      mtime: item.mtime ?? new Date(), // Fallback to current time if undefined
-      extension: item.name.includes('.') ? item.name.split('.').pop() ?? '' : '',
-    })).sort((a, b) => {
-      // Directories first, then alphabetical
-      if (a.isDirectory && !b.isDirectory) return -1;
-      if (!a.isDirectory && b.isDirectory) return 1;
-      return a.name.localeCompare(b.name);
-    });
+    try {
+      const items = await RNFS.readDir(path);
+      return items.map(item => ({
+        name: item.name,
+        path: item.path,
+        isDirectory: item.isDirectory(),
+        size: item.size,
+        mtime: item.mtime ?? new Date(),
+        extension: item.name.includes('.') ? item.name.split('.').pop() ?? '' : '',
+      })).sort((a, b) => {
+        if (a.isDirectory && !b.isDirectory) return -1;
+        if (!a.isDirectory && b.isDirectory) return 1;
+        return a.name.localeCompare(b.name);
+      });
+    } catch (error) {
+      throw new Error(`Failed to read directory at ${path}.`);
+    }
   }
 
   async readFile(path: string): Promise<string> {
-    return RNFS.readFile(path, 'utf8');
+    try {
+      return await RNFS.readFile(path, 'utf8');
+    } catch (error) {
+      throw new Error(`Failed to read file. It might be deleted, unreadable, or missing permissions.`);
+    }
   }
 
   async writeFile(path: string, content: string): Promise<void> {
-    return RNFS.writeFile(path, content, 'utf8');
+    try {
+      await RNFS.writeFile(path, content, 'utf8');
+    } catch (error) {
+      throw new Error(`Failed to save file. Please check your storage space and permissions.`);
+    }
   }
 
   async createFile(path: string): Promise<void> {
-    return RNFS.writeFile(path, '', 'utf8');
+    try {
+      await RNFS.writeFile(path, '', 'utf8');
+    } catch (error) {
+      throw new Error(`Failed to create file at ${path}.`);
+    }
   }
 
   async createDir(path: string): Promise<void> {
-    return RNFS.mkdir(path);
+    try {
+      await RNFS.mkdir(path);
+    } catch (error) {
+      throw new Error(`Failed to create directory at ${path}.`);
+    }
   }
 
   async deleteFile(path: string): Promise<void> {
-    return RNFS.unlink(path);
+    try {
+      await RNFS.unlink(path);
+    } catch (error) {
+      throw new Error(`Failed to delete item at ${path}.`);
+    }
   }
 
   async rename(from: string, to: string): Promise<void> {
-    return RNFS.moveFile(from, to);
+    try {
+      await RNFS.moveFile(from, to);
+    } catch (error) {
+      throw new Error(`Failed to rename item to ${to}.`);
+    }
   }
 
   async exists(path: string): Promise<boolean> {
-    return RNFS.exists(path);
+    try {
+      return await RNFS.exists(path);
+    } catch (error) {
+      throw new Error(`Failed to check existence of ${path}.`);
+    }
   }
 
   async copyFile(from: string, to: string): Promise<void> {
-    return RNFS.copyFile(from, to);
+    try {
+      await RNFS.copyFile(from, to);
+    } catch (error) {
+      throw new Error(`Failed to copy file to ${to}.`);
+    }
   }
 
   async stat(path: string): Promise<RNFS.StatResult> {
-    return RNFS.stat(path);
+    try {
+      return await RNFS.stat(path);
+    } catch (error) {
+      throw new Error(`Failed to get file properties for ${path}.`);
+    }
   }
 
   // Detect language from file extension
