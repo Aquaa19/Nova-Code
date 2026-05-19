@@ -25,7 +25,10 @@ export type RNToEditorMessage =
   | { type: 'MOVE_CURSOR'; payload: { direction: 'left' | 'right' | 'up' | 'down' } }
   | { type: 'UNDO' }
   | { type: 'REDO' }
-  | { type: 'TOGGLE_COMMENT' };
+  | { type: 'TOGGLE_COMMENT' }
+  // Error Highlights
+  | { type: 'SET_ERROR_LINE'; payload: { line: number } }
+  | { type: 'CLEAR_ERROR_LINE' };
 
 // All messages the WebView sends BACK TO React Native
 export type EditorToRNMessage =

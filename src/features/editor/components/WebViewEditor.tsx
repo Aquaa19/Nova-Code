@@ -24,6 +24,8 @@ export interface WebViewEditorHandle {
   undo: () => void;
   redo: () => void;
   toggleComment: () => void;
+  setErrorLine: (line: number) => void;
+  clearErrorLine: () => void;
 }
 
 interface Props {
@@ -86,6 +88,10 @@ export const WebViewEditor = forwardRef<WebViewEditorHandle, Props>(({
     undo: () => postMessage({ type: 'UNDO' }),
     redo: () => postMessage({ type: 'REDO' }),
     toggleComment: () => postMessage({ type: 'TOGGLE_COMMENT' }),
+
+    // Error Line Highlights
+    setErrorLine: (line) => postMessage({ type: 'SET_ERROR_LINE', payload: { line } }),
+    clearErrorLine: () => postMessage({ type: 'CLEAR_ERROR_LINE' }),
   }));
 
   const handleMessage = useCallback((event: WebViewMessageEvent) => {

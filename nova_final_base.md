@@ -108,22 +108,22 @@ Nova Code is an **Android-first IDE for students** — a single app where you ca
 
 #### Required Work
 
-- [ ] Verify project creation works for **all existing templates** — run each template end-to-end and confirm the generated files are valid and syntactically correct
-- [ ] Audit `FileService` for error swallowing — every RNFS call must have a `try/catch` that surfaces errors visibly to the user, not just to the console
-- [ ] **Unsaved changes guard** — when a user tries to close a file, switch files, or close the app with unsaved changes:
+- [x] Verify project creation works for **all existing templates** — run each template end-to-end and confirm the generated files are valid and syntactically correct
+- [x] Audit `FileService` for error swallowing — every RNFS call must have a `try/catch` that surfaces errors visibly to the user, not just to the console
+- [x] **Unsaved changes guard** — when a user tries to close a file, switch files, or close the app with unsaved changes:
   - Show a confirmation dialog: "You have unsaved changes. Save, Discard, or Cancel?"
   - Implement `AppState` listener to trigger autosave on app background
-- [ ] **Recent projects** — persist the last 10 opened projects in MMKV; show them on the home screen
-- [ ] **Last-opened file restoration** — on project open, restore the last active file and cursor position (store in MMKV per project)
-- [ ] **Template validation** — each template must produce files that run without modification:
+- [x] **Recent projects** — persist the last 10 opened projects in MMKV; show them on the home screen
+- [x] **Last-opened file restoration** — on project open, restore the last active file and cursor position (store in MMKV per project)
+- [x] **Template validation** — each template must produce files that run without modification:
   - `Python` → `main.py` with `print("Hello, World!")`
   - `JavaScript/Node` → `index.js` with `console.log("Hello, World!")`
   - `HTML/CSS/JS` → `index.html` + `style.css` + `script.js` with a working static page
   - `Java` → `Main.java` with `public static void main`
   - `C` → `main.c` with `#include <stdio.h>` and `printf`
   - `C++` → `main.cpp` with `#include <iostream>` and `cout`
-- [ ] Add **file operation error states** — failed rename, delete, write must show a toast/modal, not silently fail
-- [ ] Validate that file paths do not contain illegal characters on Android (`/`, `\0`, etc.)
+- [x] Add **file operation error states** — failed rename, delete, write must show a toast/modal, not silently fail
+- [x] Validate that file paths do not contain illegal characters on Android (`/`, `\0`, etc.)
 
 #### Acceptance Criteria
 
@@ -147,37 +147,37 @@ Nova Code is an **Android-first IDE for students** — a single app where you ca
 #### Required Work
 
 ##### Bridge Communication
-- [ ] Audit the React Native ↔ CodeMirror WebView bridge for race conditions:
+- [x] Audit the React Native ↔ CodeMirror WebView bridge for race conditions:
   - Messages sent before `EDITOR_READY` must be queued and replayed, not dropped
   - `GET_CONTENT` must use a requestId/promise pattern with a 5-second timeout
   - All bridge messages must be strictly typed — no `any` payloads
-- [ ] Add a bridge health check: if the WebView goes silent for >30 seconds, show a "Editor crashed — tap to reload" recovery UI
-- [ ] Lazy-mount the WebView: create it only when the editor tab is first visited; do not unmount/remount (remounting reloads CM6 and loses state)
+- [x] Add a bridge health check: if the WebView goes silent for >30 seconds, show a "Editor crashed — tap to reload" recovery UI
+- [x] Lazy-mount the WebView: create it only when the editor tab is first visited; do not unmount/remount (remounting reloads CM6 and loses state)
 
 ##### File Switching
-- [ ] File switch must follow this exact sequence:
+- [x] File switch must follow this exact sequence:
   1. Call `GET_CONTENT` to save current in-WebView state
   2. Write to disk
   3. Clear `isDirty` flag
   4. Call `SET_CONTENT` with new file content
   5. Call `SET_LANGUAGE` with detected language
   6. Scroll WebView to top
-- [ ] Show a loading overlay during the switch — never show the previous file's content while the new one loads
+- [x] Show a loading overlay during the switch — never show the previous file's content while the new one loads
 
 ##### Dynamic Editor Settings
-- [ ] **Font size** — slider in settings → bridge message → CM6 `fontSizeConf.reconfigure()` — no app restart
-- [ ] **Theme** — dark/light/high-contrast → CM6 theme swap via bridge — no app restart
-- [ ] **Tab size** — 2 or 4 spaces → bridge message → CM6 `tabSize` compartment
-- [ ] **Word wrap** — toggle → `lineWrapping` extension toggle
-- [ ] **Line numbers** — toggle → `lineNumbers()` extension toggle
-- [ ] All settings changes must apply in <300ms without WebView reload
+- [x] **Font size** — slider in settings → bridge message → CM6 `fontSizeConf.reconfigure()` — no app restart
+- [x] **Theme** — dark/light/high-contrast → CM6 theme swap via bridge — no app restart
+- [x] **Tab size** — 2 or 4 spaces → bridge message → CM6 `tabSize` compartment
+- [x] **Word wrap** — toggle → `lineWrapping` extension toggle
+- [x] **Line numbers** — toggle → `lineNumbers()` extension toggle
+- [x] All settings changes must apply in <300ms without WebView reload
 
 ##### Editor Search and Replace
-- [ ] Integrate `@codemirror/search` into `cm6-build`
-- [ ] Open/close search panel via RN bridge message `TOGGLE_SEARCH`
-- [ ] Expose find-next, find-previous, replace, replace-all over the bridge
-- [ ] Show match count in the RN header overlay (e.g., "3 of 12")
-- [ ] Highlight all matches while search panel is open
+- [x] Integrate `@codemirror/search` into `cm6-build`
+- [x] Open/close search panel via RN bridge message `TOGGLE_SEARCH`
+- [x] Expose find-next, find-previous, replace, replace-all over the bridge
+- [x] Show match count in the RN header overlay (e.g., "3 of 12")
+- [x] Highlight all matches while search panel is open
 
 ##### Mobile Keyboard Helpers (`KeyboardAccessoryBar`)
 The accessory bar above the keyboard is critical for mobile coding. Implement these keys:
@@ -188,16 +188,16 @@ Row 2 (operators):   = + - * / % < > ! &
 Row 3 (navigation):  ← → ↑ ↓ Tab  //comment  undo  redo
 ```
 
-- [ ] Tapping any key inserts it at the current cursor position via bridge
-- [ ] Tab key inserts `tabWidth` spaces (read from settings store)
-- [ ] Comment key detects language and inserts `//` or `#`
-- [ ] Undo/redo delegates to CM6's history via bridge
+- [x] Tapping any key inserts it at the current cursor position via bridge
+- [x] Tab key inserts `tabWidth` spaces (read from settings store)
+- [x] Comment key detects language and inserts `//` or `#`
+- [x] Undo/redo delegates to CM6's history via bridge
 
 ##### Large File Handling
-- [ ] Show a loading spinner when opening files >50KB
-- [ ] For files >500KB: show a warning "This file is large and may affect performance" — allow opening with confirmation
-- [ ] Do not load binary files (`.png`, `.jpg`, `.bin`, `.exe`, etc.) into the editor — show a "Binary file — cannot edit" placeholder
-- [ ] Detect binary files by checking for null bytes in the first 512 bytes
+- [x] Show a loading spinner when opening files >50KB
+- [x] For files >500KB: show a warning "This file is large and may affect performance" — allow opening with confirmation
+- [x] Do not load binary files (`.png`, `.jpg`, `.bin`, `.exe`, etc.) into the editor — show a "Binary file — cannot edit" placeholder
+- [x] Detect binary files by checking for null bytes in the first 512 bytes
 
 #### File Extension → CM6 Language Map
 
@@ -266,20 +266,20 @@ export const RUN_CONFIGS: Record<string, RunConfig> = {
 
 #### Required Work
 
-- [ ] Implement `RunService` that:
+- [x] Implement `RunService` that:
   1. Detects language from open file extension
   2. Resolves the `RunConfig`
   3. Saves the file before executing (always)
   4. Dispatches the command to the execution engine
   5. Opens/focuses the terminal/output panel
-- [ ] **Stop/restart controls** — show a ■ Stop button while a process is running; tap to send SIGTERM to the engine session
-- [ ] **Output panel** — an output-only view (not full terminal) for quick runs; the full terminal tab is for interactive use
-- [ ] **Error messages** — distinguish between:
+- [x] **Stop/restart controls** — show a ■ Stop button while a process is running; tap to send SIGTERM to the engine session
+- [x] **Output panel** — an output-only view (not full terminal) for quick runs; the full terminal tab is for interactive use
+- [x] **Error messages** — distinguish between:
   - "Runtime not available" (engine error) — show setup instructions
   - "Compilation error" (user code error) — show the error with line number highlighted in editor
   - "Runtime error / exception" (user code error) — show the traceback clearly
   - "Network error" (connection to engine failed) — show retry button
-- [ ] **Current-file vs project-level execution** — default is current file; add "Run Project" option in the header menu for project-level entry points
+- [x] **Current-file vs project-level execution** — default is current file; add "Run Project" option in the header menu for project-level entry points
 
 #### Acceptance Criteria
 

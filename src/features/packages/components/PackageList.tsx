@@ -5,15 +5,13 @@ import { theme } from '../../../theme';
 
 interface PackageListProps {
   packages: PackageData[];
-  onDelete?: (id: string) => void;
-  onUpgrade?: (id: string) => void;
-  onInstall?: (id: string) => void;
+  onRemove?: (pkg: PackageData) => void;
+  onInstall: (pkg: PackageData) => void;
 }
 
 export const PackageList: React.FC<PackageListProps> = ({
   packages,
-  onDelete,
-  onUpgrade,
+  onRemove,
   onInstall,
 }) => {
   return (
@@ -23,8 +21,7 @@ export const PackageList: React.FC<PackageListProps> = ({
       renderItem={({ item }) => (
         <PackageCard
           pkg={item}
-          onDelete={onDelete}
-          onUpgrade={onUpgrade}
+          onRemove={onRemove}
           onInstall={onInstall}
         />
       )}

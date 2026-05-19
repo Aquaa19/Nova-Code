@@ -1,7 +1,4 @@
 // src/features/terminal/components/InteractiveConsole.tsx
-//
-// Pure React Native terminal — no WebView, no useImperativeHandle, no ref tricks.
-// Parent owns the lines state and passes it directly as a prop.
 
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import {
@@ -25,6 +22,8 @@ interface InteractiveConsoleProps {
   onClose: () => void;
   status: string;
   isExecuting: boolean;
+  isNetworkError?: boolean;
+  onRetry?: () => void;
   onInput: (data: string) => void;
   onStop: () => void;
   lines: string[];
@@ -36,6 +35,8 @@ export const InteractiveConsole: React.FC<InteractiveConsoleProps> = ({
   onClose,
   status,
   isExecuting,
+  isNetworkError,
+  onRetry,
   onInput,
   onStop,
   lines,
@@ -43,6 +44,7 @@ export const InteractiveConsole: React.FC<InteractiveConsoleProps> = ({
 }) => {
   const scrollRef = useRef<ScrollView>(null);
   const [inputText, setInputText] = useState('');
+  const [activeTab, setActiveTab] = useState<'output' | 'terminal'>('output');
 
   // Auto-scroll whenever new lines arrive
   useEffect(() => {
@@ -51,9 +53,12 @@ export const InteractiveConsole: React.FC<InteractiveConsoleProps> = ({
     }
   }, [lines.length]);
 
-  // Clear input when console opens
+  // Reset states when console opens
   useEffect(() => {
-    if (visible) setInputText('');
+    if (visible) {
+      setInputText('');
+      setActiveTab('output');
+    }
   }, [visible]);
 
   const handleSubmit = useCallback(() => {
@@ -69,9 +74,8 @@ export const InteractiveConsole: React.FC<InteractiveConsoleProps> = ({
       <View style={styles.overlay}>
         <Pressable style={styles.backdrop} onPress={onClose} />
 
-        {/* Use a plain View instead of GlassPanel to avoid content-wrapper height collapse */}
         <View style={styles.sheetContainer}>
-          {/* ── Header ── */}
+          {/* ── Header & Tabs ── */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <MaterialCommunityIcons
@@ -82,6 +86,21 @@ export const InteractiveConsole: React.FC<InteractiveConsoleProps> = ({
               <AppText variant="labelLg" style={styles.statusText}>
                 {status || 'Output'}
               </AppText>
+            </View>
+
+            <View style={styles.tabSwitcher}>
+              <Pressable 
+                onPress={() => setActiveTab('output')} 
+                style={[styles.tab, activeTab === 'output' && styles.activeTab]}
+              >
+                <Text style={[styles.tabText, activeTab === 'output' && styles.activeTabText]}>Output</Text>
+              </Pressable>
+              <Pressable 
+                onPress={() => setActiveTab('terminal')} 
+                style={[styles.tab, activeTab === 'terminal' && styles.activeTab]}
+              >
+                <Text style={[styles.tabText, activeTab === 'terminal' && styles.activeTabText]}>Terminal</Text>
+              </Pressable>
             </View>
 
             <View style={styles.headerRight}>
@@ -110,7 +129,25 @@ export const InteractiveConsole: React.FC<InteractiveConsoleProps> = ({
             </View>
           </View>
 
-          {/* ── Output area ── */}
+          {/* ── Network Error Banner ── */}
+          {isNetworkError && (
+            <View style={styles.errorBanner}>
+              <MaterialCommunityIcons name="alert-circle-outline" size={24} color={theme.colors.error} />
+              <View style={styles.errorBannerText}>
+                <AppText variant="labelSm" color={theme.colors.error}>Network Error / Runtime Unavailable</AppText>
+                <AppText variant="labelXs" color={theme.colors.onSurfaceVariant} style={{ marginTop: 2 }}>
+                  Make sure the Execution Engine server is running on the correct URL and Auth Token in Settings.
+                </AppText>
+              </View>
+              {onRetry && (
+                <Pressable onPress={onRetry} style={styles.retryBtn}>
+                  <AppText variant="labelSm" color={theme.colors.onSurface}>Retry</AppText>
+                </Pressable>
+              )}
+            </View>
+          )}
+
+          {/* ── Output Area ── */}
           <ScrollView
             ref={scrollRef}
             style={styles.outputScroll}
@@ -128,23 +165,25 @@ export const InteractiveConsole: React.FC<InteractiveConsoleProps> = ({
             )}
           </ScrollView>
 
-          {/* ── Input row ── */}
-          <View style={styles.inputRow}>
-            <Text style={styles.prompt}>›</Text>
-            <TextInput
-              style={styles.input}
-              value={inputText}
-              onChangeText={setInputText}
-              onSubmitEditing={handleSubmit}
-              blurOnSubmit={false}
-              autoCapitalize="none"
-              autoCorrect={false}
-              spellCheck={false}
-              placeholder="Type command..."
-              placeholderTextColor="rgba(248,248,242,0.3)"
-              returnKeyType="send"
-            />
-          </View>
+          {/* ── Interactive Input Row (Terminal Tab Only) ── */}
+          {activeTab === 'terminal' && (
+            <View style={styles.inputRow}>
+              <Text style={styles.prompt}>›</Text>
+              <TextInput
+                style={styles.input}
+                value={inputText}
+                onChangeText={setInputText}
+                onSubmitEditing={handleSubmit}
+                blurOnSubmit={false}
+                autoCapitalize="none"
+                autoCorrect={false}
+                spellCheck={false}
+                placeholder="Type command..."
+                placeholderTextColor="rgba(248,248,242,0.3)"
+                returnKeyType="send"
+              />
+            </View>
+          )}
         </View>
       </View>
     </Modal>
@@ -158,7 +197,6 @@ const styles = StyleSheet.create({
     height: height * 0.55,
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
-    // ── Critical: flexDirection so children can flex inside fixed height ──
     flexDirection: 'column',
     padding: theme.spacing.s3,
     borderTopWidth: 1,
@@ -174,9 +212,32 @@ const styles = StyleSheet.create({
     borderBottomColor: 'rgba(255,255,255,0.05)',
     marginBottom: theme.spacing.s2,
   },
-  headerLeft: { flexDirection: 'row', alignItems: 'center' },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
   statusText: { marginLeft: theme.spacing.s2, color: theme.colors.onSurface },
-  headerRight: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.s2 },
+  tabSwitcher: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: theme.radius.sm,
+    padding: 2,
+    marginHorizontal: 12,
+  },
+  tab: {
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderRadius: theme.radius.sm - 2,
+  },
+  activeTab: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  tabText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: theme.colors.onSurfaceVariant,
+  },
+  activeTabText: {
+    color: theme.colors.primaryFixed,
+  },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: theme.spacing.s2, flex: 1, justifyContent: 'flex-end' },
   actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -188,6 +249,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.s2,
   },
   btnText: { marginLeft: 4 },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 107, 107, 0.2)',
+    borderRadius: theme.radius.sm,
+    padding: 10,
+    marginBottom: 10,
+  },
+  errorBannerText: { flex: 1, marginHorizontal: 10 },
+  retryBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 4,
+  },
   outputScroll: { flex: 1, backgroundColor: '#0d0f1a', borderRadius: theme.radius.sm },
   outputContent: { padding: 10, paddingBottom: 4 },
   outputLine: { fontFamily: 'monospace', fontSize: 12.5, lineHeight: 20, color: '#f8f8f2' },

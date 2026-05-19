@@ -22,27 +22,7 @@ import { useProjectStore } from '../store/useProjectStore';
 import { useFileOpen } from '../features/editor/hooks/useFileOpen';
 import { useAutosave } from '../features/editor/hooks/useAutosave';
 import { InteractiveConsole } from '../features/terminal/components/InteractiveConsole';
-import { useTerminalEngine } from '../features/terminal/hooks/useTerminalEngine';
-
-// ── PTY output cleaner ──
-function addRawOutput(prev: string[], raw: string): string[] {
-  const clean = raw
-    .replace(/\r/g, '')
-    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '')
-    .replace(/\x1b\[[\x30-\x3f]*[\x20-\x2f]*[\x40-\x7e]/g, '')
-    .replace(/\x1b[@-_]/g, '')
-    .replace(/\x1b[^\[\]]/g, '')
-    .replace(/\x1b/g, '');
-
-  if (!clean.trim()) return prev;
-
-  const lines = clean.split('\n');
-  const next = [...prev];
-  if (next.length === 0) return lines;
-  next[next.length - 1] += lines[0];
-  for (let i = 1; i < lines.length; i++) next.push(lines[i]);
-  return next;
-}
+import { useRunWorkflow } from '../features/terminal/hooks/useRunWorkflow';
 
 export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
   const editorRef = useRef<WebViewEditorHandle>(null);
@@ -51,7 +31,7 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isFileLoading, setIsFileLoading] = useState(false);
 
-  // ── Keyboard & Search State ──
+  // Keyboard & Search State
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -62,73 +42,64 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
   // Global State
   const { openFiles, activeIndex, markUnsaved, markSaved, setActiveIndex, closeFile, updateCursor } = useEditorStore();
   const { currentProject, saveProjectSession } = useProjectStore();
-  const settings = useSettingsStore(); // Full settings object to dynamically pass to webview
+  const settings = useSettingsStore();
   const { openFileAtPath } = useFileOpen();
 
-  const [consoleVisible, setConsoleVisible] = useState(false);
-  const [terminalStatus, setTerminalStatus] = useState('Ready');
-  const [terminalLines, setTerminalLines] = useState<string[]>([]);
-
   const activeFile = openFiles[activeIndex];
-  const activeFileRef = useRef(activeFile);
-  activeFileRef.current = activeFile;
 
-  const sendInputRef = useRef<((data: string) => void) | null>(null);
-  const sendFileRef = useRef<((filename: string, content: string) => void) | null>(null);
+  // ── Run Workflow Integration ──
+  const {
+    runProjectOrFile,
+    stopRun,
+    sendInput,
+    consoleVisible,
+    setConsoleVisible,
+    terminalLines,
+    setTerminalLines,
+    terminalStatus,
+    isConnected,
+    isNetworkError
+  } = useRunWorkflow(editorRef, activeFile, markSaved);
 
-  const appendLine = useCallback((raw: string) => {
-    setTerminalLines(prev => addRawOutput(prev, raw));
-  }, []);
-
-  const { connect, disconnect, sendInput, sendFile, isConnected } = useTerminalEngine({
-    onOutput: appendLine,
-    onUploadAck: (filename) => {
-      const file = activeFileRef.current;
-      if (!file) return;
-      const command =
-        file.language === 'python'   ? `python3 ${filename}\n`
-        : file.language === 'javascript' ? `node ${filename}\n`
-        : file.language === 'java'   ? `javac ${filename} && java ${filename.replace('.java', '')}\n`
-        : file.language === 'c'      ? `gcc ${filename} -o prog && ./prog\n`
-        : file.language === 'cpp'    ? `g++ ${filename} -o prog && ./prog\n`
-        :                              `echo "Unsupported language"\n`;
-      setTerminalLines(prev => [...prev, `Running: ${command.trim()}`]);
-      sendInputRef.current?.(command);
-    },
-    onConnected: () => {
-      setTerminalStatus('Running...');
-      const file = activeFileRef.current;
-      if (!file) {
-        setTerminalLines(prev => [...prev, 'No file open to run.']);
-        return;
+  const handleRunProject = useCallback(async () => {
+    if (!currentProject) return;
+    try {
+      const files = await FileService.readDir(currentProject.path);
+      const entryPoints = ['main.py', 'index.js', 'Main.java', 'main.cpp', 'main.c'];
+      const entryFile = files.find(f => entryPoints.includes(f.name));
+      
+      if (entryFile) {
+        const lang = FileService.getLanguage(entryFile.name);
+        runProjectOrFile(entryFile.path, lang);
+      } else if (activeFile) {
+        runProjectOrFile(activeFile.path, activeFile.language);
+      } else {
+        Alert.alert('No Entry Point', 'No main entry file found and no file currently open.');
       }
-      const fileName = file.path.split('/').pop() ?? 'main';
-      setTerminalLines(prev => [...prev, `Uploading ${fileName}...`]);
-      FileService.readFile(file.path)
-        .then(content => sendFileRef.current?.(fileName, content))
-        .catch(() => setTerminalLines(prev => [...prev, 'Failed to read file.']));
-    },
-    onDisconnected: () => {
-      setTerminalStatus('Disconnected');
-      setTerminalLines(prev => [...prev, '', '[Nova Engine] Session closed.']);
-    },
-    onError: (err) => {
-      setTerminalStatus('Error');
-      setTerminalLines(prev => [...prev, '', `[Nova Engine] Error: ${err}`]);
-    },
-  });
+    } catch (e) {
+      Alert.alert('Error', 'Failed to scan project directory.');
+    }
+  }, [currentProject, activeFile, runProjectOrFile]);
 
-  sendInputRef.current = sendInput;
-  sendFileRef.current = sendFile;
+  const handleRunCurrent = useCallback(() => {
+    if (!isConnected) {
+      if (activeFile) {
+         runProjectOrFile(activeFile.path, activeFile.language);
+      }
+    } else {
+       setConsoleVisible(true);
+       setTerminalLines(prev => [...prev, '\n[Nova Code] Re-using existing session.\n']);
+    }
+  }, [isConnected, activeFile, runProjectOrFile, setConsoleVisible, setTerminalLines]);
 
-  // ── Keyboard Listeners ──
+  // Keyboard Listeners
   useEffect(() => {
     const showSub = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
     const hideSub = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
     return () => { showSub.remove(); hideSub.remove(); };
   }, []);
 
-  // ── Sync Settings Dynamically ──
+  // Sync Settings Dynamically
   useEffect(() => {
     editorRef.current?.setTheme?.(settings.theme);
     editorRef.current?.setFontSize?.(settings.fontSize);
@@ -141,8 +112,6 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
   useEffect(() => {
     if (isSearchActive) {
       editorRef.current?.setSearchQuery?.(searchQuery, replaceQuery, false);
-    } else {
-      editorRef.current?.setSearchQuery?.('', '', false);
     }
   }, [searchQuery, replaceQuery, isSearchActive]);
 
@@ -236,6 +205,7 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
 
   const handleTabSwitch = useCallback((index: number) => {
     if (index !== activeIndex) {
+      editorRef.current?.clearErrorLine();
       checkUnsavedBeforeAction(() => setActiveIndex(index));
     }
   }, [activeIndex, checkUnsavedBeforeAction, setActiveIndex]);
@@ -261,39 +231,14 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
     }
   }, [openFiles, activeFile, settings.autosaveEnabled, handleSave, closeFile]);
 
-  const handleRun = useCallback(() => {
-    if (!isConnected) {
-      setTerminalLines([]);
-      setTerminalStatus('Connecting...');
-      setConsoleVisible(true);
-      setTimeout(() => connect(), 0);
-    } else {
-      setConsoleVisible(true);
-      setTerminalLines(prev => addRawOutput(prev, '\n[Nova Code] Re-using existing session.\n'));
-    }
-  }, [isConnected, connect]);
-
-  const handleTerminalInput = useCallback((data: string) => sendInput(data), [sendInput]);
-  const handleStopProcess = useCallback(() => disconnect(), [disconnect]);
-
   const isUnsaved = activeFile?.unsaved ?? false;
 
   const renderLayoutToggles = () => (
     <View style={styles.toggleGroup}>
-      <IconButton
-        icon="dock-left"
-        size={20}
-        onPress={() => setIsDrawerOpen(!isDrawerOpen)}
-        active={isDrawerOpen}
-        style={styles.toggleBtn}
-      />
-      <IconButton
-        icon="dock-bottom"
-        size={20}
-        onPress={() => setConsoleVisible(!consoleVisible)}
-        active={consoleVisible}
-        style={styles.toggleBtn}
-      />
+      <IconButton icon="dock-left" size={20} onPress={() => setIsDrawerOpen(!isDrawerOpen)} active={isDrawerOpen} style={styles.toggleBtn} />
+      <IconButton icon="dock-bottom" size={20} onPress={() => setConsoleVisible(!consoleVisible)} active={consoleVisible} style={styles.toggleBtn} />
+      <View style={styles.divider} />
+      <IconButton icon="play-circle-outline" size={20} onPress={handleRunProject} style={styles.toggleBtn} />
     </View>
   );
 
@@ -381,6 +326,7 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
                 lineNumbers={settings.lineNumbers}
                 tabSize={settings.tabWidth}
                 onContentChange={() => {
+                  editorRef.current?.clearErrorLine();
                   markUnsaved(activeFile.path);
                   triggerAutosave();
                 }}
@@ -443,7 +389,7 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
           )}
           <FloatingActionButton
             icon={isConnected ? 'stop' : 'play'}
-            onPress={isConnected ? handleStopProcess : handleRun}
+            onPress={isConnected ? stopRun : handleRunCurrent}
             disabled={!isConnected && !settings.autosaveEnabled && isUnsaved}
             color={isConnected ? theme.colors.error : (!settings.autosaveEnabled && isUnsaved) ? 'rgba(255,255,255,0.15)' : undefined}
             position="none"
@@ -468,8 +414,10 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
         onClose={() => setConsoleVisible(false)}
         status={terminalStatus}
         isExecuting={isConnected}
-        onInput={handleTerminalInput}
-        onStop={handleStopProcess}
+        isNetworkError={isNetworkError}
+        onRetry={() => activeFile && runProjectOrFile(activeFile.path, activeFile.language)}
+        onInput={(data) => sendInput(data)}
+        onStop={stopRun}
         lines={terminalLines}
         onClear={() => setTerminalLines([])}
       />
@@ -481,11 +429,18 @@ const styles = StyleSheet.create({
   editorContainer: { flex: 1, position: 'relative' },
   toggleGroup: {
     flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: theme.radius.md,
     padding: 2,
   },
   toggleBtn: { paddingHorizontal: 8 },
+  divider: {
+    width: 1,
+    height: 18,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    marginHorizontal: 4,
+  },
   emptyState: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   loaderOverlay: {
     ...StyleSheet.absoluteFill,
