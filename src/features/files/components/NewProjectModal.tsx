@@ -1,13 +1,13 @@
 // src/features/files/components/NewProjectModal.tsx
 
 import React, { useState, useEffect } from 'react';
-import { Modal, View, StyleSheet, TextInput, Pressable } from 'react-native';
+import { Modal, View, StyleSheet, TextInput, Pressable, ScrollView } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AppText } from '../../../components/typography/AppText';
 import { GlassPanel } from '../../../components/panels/GlassPanel';
 import { GlassCard } from '../../../components/cards/GlassCard';
 import { theme } from '../../../theme';
-import { ProjectTemplateType } from '../../../templates';
+import { TEMPLATES, ProjectTemplateType } from '../../../templates';
 
 interface NewProjectModalProps {
   visible: boolean;
@@ -15,26 +15,19 @@ interface NewProjectModalProps {
   onSubmit: (name: string, template: ProjectTemplateType) => void;
 }
 
-const TEMPLATE_OPTIONS: Array<{ id: ProjectTemplateType; label: string; icon: string; color: string }> = [
-  { id: 'blank', label: 'Blank Project', icon: 'folder-outline', color: '#E8C84A' },
-  { id: 'python', label: 'Python Script', icon: 'language-python', color: '#3572A5' },
-  { id: 'node', label: 'Node.js App', icon: 'nodejs', color: '#68A063' },
-  { id: 'react-native', label: 'React Native', icon: 'react', color: '#61DAFB' },
-];
-
 export const NewProjectModal: React.FC<NewProjectModalProps> = ({
   visible,
   onClose,
   onSubmit,
 }) => {
   const [projectName, setProjectName] = useState('');
-  const [selectedTemplate, setSelectedTemplate] = useState<ProjectTemplateType>('blank');
+  const [selectedTemplate, setSelectedTemplate] = useState<ProjectTemplateType>('html-blank');
 
   // Reset state whenever the modal opens
   useEffect(() => {
     if (visible) {
       setProjectName('');
-      setSelectedTemplate('blank');
+      setSelectedTemplate('html-blank');
     }
   }, [visible]);
 
@@ -68,14 +61,15 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
           <AppText variant="bodyMd" color={theme.colors.onSurfaceVariant} style={styles.label}>
             Select Template
           </AppText>
-          <View style={styles.grid}>
-            {TEMPLATE_OPTIONS.map((tmpl) => {
-              const isSelected = selectedTemplate === tmpl.id;
+          <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.grid}>
+            {(Object.keys(TEMPLATES) as ProjectTemplateType[]).map((key) => {
+              const tmpl = TEMPLATES[key];
+              const isSelected = selectedTemplate === key;
               return (
                 <Pressable 
-                  key={tmpl.id} 
+                  key={key} 
                   style={styles.gridItem} 
-                  onPress={() => setSelectedTemplate(tmpl.id)}
+                  onPress={() => setSelectedTemplate(key)}
                 >
                   <GlassCard 
                     padding="s3" 
@@ -95,13 +89,13 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
                       color={isSelected ? theme.colors.onSurface : theme.colors.onSurfaceVariant}
                       style={styles.cardText}
                     >
-                      {tmpl.label}
+                      {tmpl.name}
                     </AppText>
                   </GlassCard>
                 </Pressable>
               );
             })}
-          </View>
+          </ScrollView>
 
           <View style={styles.actionRow}>
             <Pressable style={styles.button} onPress={onClose}>
@@ -148,11 +142,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: theme.spacing.s4,
   },
+  scrollContainer: {
+    maxHeight: 220,
+    marginBottom: theme.spacing.s4,
+  },
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginHorizontal: -theme.spacing.s2,
-    marginBottom: theme.spacing.s4,
   },
   gridItem: {
     width: '50%',

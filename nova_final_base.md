@@ -560,13 +560,13 @@ Project files (RNFS)
 
 #### Required Work
 
-- [ ] Add a `PreviewScreen` (new screen — not currently in the project)
-- [ ] Add "Preview" to the bottom tab bar (or as a floating button in the editor for HTML files)
-- [ ] `nova-engine`: add a `GET /sessions/:id/preview` endpoint that spins up a local HTTP server for the session's `/workspace/` directory, returns a temporary URL
-- [ ] **Auto-detect `index.html`** — when a web project is run, automatically open `PreviewScreen` pointing at the index
-- [ ] **Refresh controls** — ↺ soft refresh (reload WebView URL), ⟳ hard refresh (re-upload files, restart preview server, reload)
-- [ ] **Error display** — if the preview server fails to start or `index.html` is missing, show a clear error screen with troubleshooting hints
-- [ ] **URL bar** — show the current preview URL; allow navigation to sub-pages
+- [x] Add a `PreviewScreen` (new screen — not currently in the project)
+- [x] Add "Preview" to the bottom tab bar (or as a floating button in the editor for HTML files)
+- [x] `nova-engine`: add a `GET /sessions/:id/preview` endpoint that spins up a local HTTP server for the session's `/workspace/` directory, returns a temporary URL
+- [x] **Auto-detect `index.html`** — when a web project is run, automatically open `PreviewScreen` pointing at the index
+- [x] **Refresh controls** — ↺ soft refresh (reload WebView URL), ⟳ hard refresh (re-upload files, restart preview server, reload)
+- [x] **Error display** — if the preview server fails to start or `index.html` is missing, show a clear error screen with troubleshooting hints
+- [x] **URL bar** — show the current preview URL; allow navigation to sub-pages
 
 #### Acceptance Criteria
 
@@ -588,10 +588,10 @@ Project files (RNFS)
 
 #### Required Work
 
-- [ ] **File watcher** — watch for save events in the app; on each save of `.html`, `.css`, or `.js`, trigger a preview refresh
-- [ ] **Live-reload injection** — inject a `<script>` into the served `index.html` that polls a `/livereload` endpoint; when a file changes, the endpoint version increments and the script reloads the page
-- [ ] **Scroll preservation** — before reload, capture `window.scrollY` from the WebView; after reload, restore it via injected JS
-- [ ] **Console forwarding** — override `console.log`, `console.warn`, `console.error` in the injected script to POST to a `/console` endpoint; display the output in a collapsible console panel below the preview
+- [x] **File watcher** — watch for save events in the app; on each save of `.html`, `.css`, or `.js`, trigger a preview refresh
+- [x] **Live-reload injection** — inject a `<script>` into the served `index.html` that polls a `/livereload` endpoint; when a file changes, the endpoint version increments and the script reloads the page
+- [x] **Scroll preservation** — before reload, capture `window.scrollY` from the WebView; after reload, restore it via injected JS
+- [x] **Console forwarding** — override `console.log`, `console.warn`, `console.error` in the injected script to POST to a `/console` endpoint; display the output in a collapsible console panel below the preview
 
 #### Console Panel Schema
 

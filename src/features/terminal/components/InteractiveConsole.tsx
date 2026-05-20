@@ -18,6 +18,7 @@ import { theme } from '../../../theme';
 const { height } = Dimensions.get('window');
 
 interface InteractiveConsoleProps {
+  initialTab?: 'output' | 'terminal';
   visible: boolean;
   onClose: () => void;
   status: string;
@@ -32,6 +33,7 @@ interface InteractiveConsoleProps {
 }
 
 export const InteractiveConsole: React.FC<InteractiveConsoleProps> = ({
+  initialTab,
   visible,
   onClose,
   status,
@@ -61,9 +63,9 @@ export const InteractiveConsole: React.FC<InteractiveConsoleProps> = ({
   useEffect(() => {
     if (visible) {
       setInputText('');
-      setActiveTab('output');
+      setActiveTab(initialTab || 'output');
     }
-  }, [visible]);
+  }, [visible, initialTab]);
 
   const handleSubmit = useCallback(() => {
     const val = inputText.trim();

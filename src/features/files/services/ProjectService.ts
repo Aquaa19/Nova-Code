@@ -1,6 +1,7 @@
 // src/features/files/services/ProjectService.ts
 
 import { FileService, PROJECTS_ROOT } from '../../../services/FileService';
+import { TemplateService } from '../../../services/TemplateService';
 import { TEMPLATES, ProjectTemplateType } from '../../../templates';
 
 export interface Project {
@@ -18,32 +19,16 @@ class ProjectServiceClass {
     const exists = await FileService.exists(projectPath);
     if (exists) throw new Error(`Project "${name}" already exists`);
 
-    // 1. Create root directory
-    await FileService.createDir(projectPath);
+    // 1. Scaffold files via TemplateService
+    await TemplateService.generateProject(template, projectPath, safeName);
 
-    // 2. Scaffold template files
-    const templateFiles = TEMPLATES[template];
-    for (const file of templateFiles) {
-      await FileService.writeFile(`${projectPath}/${file.path}`, file.content);
-    }
-
-    // 3. Return Project metadata (state sync is handled by consumer)
+    // 2. Return Project metadata (state sync is handled by consumer)
     return {
       name: safeName,
       path: projectPath,
-      language: this.templateLanguage(template),
+      language: TEMPLATES[template].language,
       lastOpened: Date.now(),
     };
-  }
-
-  private templateLanguage(t: ProjectTemplateType): string {
-    const map: Record<ProjectTemplateType, string> = {
-      'blank': 'plaintext', 
-      'python': 'python',
-      'node': 'javascript', 
-      'react-native': 'typescript',
-    };
-    return map[t];
   }
 }
 

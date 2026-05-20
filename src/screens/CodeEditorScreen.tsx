@@ -61,7 +61,8 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
     setTerminalLines,
     terminalStatus,
     isConnected,
-    isNetworkError
+    isNetworkError,
+    requiresInteractiveTab,
   } = useRunWorkflow(editorRef, activeFile, markSaved);
 
   // Placeholder — handleRunProject and handleRunCurrent are defined after handleSave below
@@ -116,10 +117,111 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
     }
   }, [activeFile, markSaved, sessionId, settings.engineUrl, settings.engineAuthToken]);
 
+  const [isFormatting, setIsFormatting] = useState(false);
+
+  const handleFormatCode = async () => {
+    if (!activeFile || activeFile.language !== 'python') return;
+    if (!currentProject) return;
+
+    try {
+      setIsFormatting(true);
+      await handleSave();
+      
+      const httpUrl = settings.engineUrl.replace('ws://', 'http://').replace('wss://', 'https://');
+      const filename = activeFile.path.replace(`${currentProject.path}/`, '');
+
+      const res = await fetch(`${httpUrl}/sessions/${sessionId}/format`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-auth-token': settings.engineAuthToken,
+        },
+        body: JSON.stringify({ filename, language: 'python' }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        if (errData.error === 'Session not found' || res.status === 404) {
+          useTerminalStore.getState().setSessionId(null);
+        }
+        throw new Error(errData.error || 'Server returned an error');
+      }
+
+      const data = await res.json();
+      if (data.success && data.content) {
+        setEditorContent(data.content);
+        editorRef.current?.setContent(data.content);
+        await FileService.writeFile(activeFile.path, data.content);
+        markSaved(activeFile.path);
+        Alert.alert('Format Complete', 'Python code formatted successfully.');
+      } else {
+        throw new Error('No formatted content returned.');
+      }
+    } catch (e: any) {
+      Alert.alert('Formatting Error', e.message || 'Failed to format code.');
+    } finally {
+      setIsFormatting(false);
+    }
+  };
+
   const handleRunProject = useCallback(async () => {
     if (!currentProject) return;
     try {
       const files = await FileService.readDir(currentProject.path);
+      
+      // Node.js Custom Scripts Scanner
+      const pkgFile = files.find(f => f.name === 'package.json');
+      if (pkgFile) {
+        try {
+          const pkgContent = await FileService.readFile(pkgFile.path);
+          const pkg = JSON.parse(pkgContent);
+          
+          if (pkg.scripts && Object.keys(pkg.scripts).length > 0) {
+            const scriptKeys = Object.keys(pkg.scripts);
+            
+            const buttons: any[] = scriptKeys.map(key => ({
+              text: `npm run ${key}`,
+              onPress: () => {
+                runProjectOrFile(pkgFile.path, 'javascript', `npm run ${key}`);
+              }
+            }));
+            
+            const entryPoints = ['index.html', 'main.py', 'index.js', 'Main.java', 'main.cpp', 'main.c'];
+            const entryFile = files.find(f => entryPoints.includes(f.name));
+            
+            if (entryFile && entryFile.name !== 'package.json') {
+              buttons.push({
+                text: `Run direct (${entryFile.name})`,
+                onPress: () => {
+                  const lang = FileService.getLanguage(entryFile.name);
+                  if (lang === 'html') {
+                    handleSave().then(() => navigation.navigate('Preview'));
+                  } else {
+                    runProjectOrFile(entryFile.path, lang);
+                  }
+                }
+              });
+            }
+            
+            buttons.push({
+              text: 'Cancel',
+              style: 'cancel' as any,
+              onPress: () => {}
+            });
+            
+            Alert.alert(
+              'Select Script',
+              'Choose a script from package.json to run in the sandbox:',
+              buttons,
+              { cancelable: true }
+            );
+            return;
+          }
+        } catch (err) {
+          console.warn('Failed to parse package.json scripts', err);
+        }
+      }
+
       const entryPoints = ['index.html', 'main.py', 'index.js', 'Main.java', 'main.cpp', 'main.c'];
       const entryFile = files.find(f => entryPoints.includes(f.name));
 
@@ -270,6 +372,16 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
     <View style={styles.toggleGroup}>
       <IconButton icon="dock-left" size={20} onPress={() => setIsDrawerOpen(!isDrawerOpen)} active={isDrawerOpen} style={styles.toggleBtn} />
       <IconButton icon="dock-bottom" size={20} onPress={() => setConsoleVisible(!consoleVisible)} active={consoleVisible} style={styles.toggleBtn} />
+      {activeFile?.language === 'python' && (
+        <>
+          <View style={styles.divider} />
+          {isFormatting ? (
+            <ActivityIndicator size="small" color={theme.colors.primaryFixed} style={{ paddingHorizontal: 8 }} />
+          ) : (
+            <IconButton icon="format-align-left" size={20} onPress={handleFormatCode} style={styles.toggleBtn} />
+          )}
+        </>
+      )}
       <View style={styles.divider} />
       <IconButton icon="play-circle-outline" size={20} onPress={handleRunProject} style={styles.toggleBtn} />
     </View>
@@ -443,6 +555,7 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
       />
 
       <InteractiveConsole
+        initialTab={requiresInteractiveTab ? 'terminal' : 'output'}
         visible={consoleVisible}
         onClose={() => setConsoleVisible(false)}
         status={terminalStatus}

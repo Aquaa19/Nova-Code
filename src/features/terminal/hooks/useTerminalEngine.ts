@@ -60,6 +60,9 @@ export const useTerminalEngine = (props: UseTerminalEngineProps) => {
           const payload = JSON.parse(event.data);
           if (payload.type === 'output') {
             callbacksRef.current.onOutput(payload.data);
+            if (payload.data && payload.data.includes('Session invalid or unauthorized.')) {
+              setSessionId(null);
+            }
           }
         } catch (e) {}
       };
@@ -115,6 +118,9 @@ export const useTerminalEngine = (props: UseTerminalEngineProps) => {
         callbacksRef.current.onUploadAck?.(filename);
       } else {
         const errData = await res.json().catch(() => ({}));
+        if (errData.error === 'Session not found' || res.status === 404) {
+          useTerminalStore.getState().setSessionId(null);
+        }
         callbacksRef.current.onError?.(errData.error || `Upload failed: ${res.status}`);
       }
     })
