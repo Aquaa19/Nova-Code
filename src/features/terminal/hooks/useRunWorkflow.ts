@@ -25,6 +25,7 @@ export function useRunWorkflow(
 ) {
   const [terminalStatus, setTerminalStatus] = useState('Ready');
   const [terminalLines, setTerminalLines] = useState<string[]>([]);
+  const [runningCommand, setRunningCommand] = useState<string | null>(null);
   const [isNetworkError, setIsNetworkError] = useState(false);
   const [consoleVisible, setConsoleVisible] = useState(false);
 
@@ -72,8 +73,18 @@ export function useRunWorkflow(
       const lines = clean.split('\n');
       const next = [...prev];
       if (next.length === 0) return lines;
-      next[next.length - 1] += lines[0];
-      for (let i = 1; i < lines.length; i++) next.push(lines[i]);
+      
+      const lastLine = next[next.length - 1];
+      const isManualLog = lastLine.startsWith('Uploading ') || lastLine.startsWith('Running: ');
+      
+      if (isManualLog) {
+        for (const line of lines) {
+          next.push(line);
+        }
+      } else {
+        next[next.length - 1] += lines[0];
+        for (let i = 1; i < lines.length; i++) next.push(lines[i]);
+      }
       return next;
     });
   }, [activeFile?.path, scanForErrors]);
@@ -91,10 +102,12 @@ export function useRunWorkflow(
         .replace(/{filename}/g, baseName)
         .replace(/{classname}/g, className);
         
-      const command = `${target.config.command} ${configArgs}\n`;
+      const command = `${target.config.command} ${configArgs}`;
+      setRunningCommand(command);
       
+      const commandStr = `${command}\n`;
       setTerminalLines(prev => [...prev, `Running: ${command.trim()}`]);
-      sendInput(command);
+      sendInput(commandStr);
     },
     onConnected: () => {
       setTerminalStatus('Running...');
@@ -148,11 +161,39 @@ export function useRunWorkflow(
 
     runTargetRef.current = { path, config };
     setTerminalLines([]);
+    setRunningCommand(null);
     setIsNetworkError(false);
     setTerminalStatus('Connecting...');
     setConsoleVisible(true);
     setTimeout(() => connect(), 0);
   }, [connect, markSaved, editorRef]);
+
+  // Helper to filter out raw shell noise for clean output
+  const outputLines = terminalLines
+    .map(line => {
+      const trimmed = line.trim();
+      if (trimmed.includes('student@') && trimmed.includes('/workspace$')) {
+        const parts = line.split(/student@[0-9a-f]+:\s*\/workspace\s*\$/i);
+        return parts[0];
+      }
+      return line;
+    })
+    .filter(line => {
+      const trimmed = line.trim();
+      if (!trimmed) return true;
+      
+      if (trimmed.includes('student@') || trimmed.includes('/workspace$') || trimmed.includes('/workspace#') || trimmed.endsWith('/workspace:')) {
+        return false;
+      }
+      
+      if (runningCommand) {
+        const cleanCmd = runningCommand.trim();
+        if (trimmed === cleanCmd || trimmed === `${cleanCmd}${cleanCmd}` || trimmed === `python3 main.pypython3 main.py`) {
+          return false;
+        }
+      }
+      return true;
+    });
 
   return {
     runProjectOrFile,
@@ -161,6 +202,7 @@ export function useRunWorkflow(
     consoleVisible,
     setConsoleVisible,
     terminalLines,
+    outputLines,
     setTerminalLines,
     terminalStatus,
     isConnected,

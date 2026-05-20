@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useSettingsStore } from '../../../store/useSettingsStore';
+import { useTerminalStore } from '../../../store/useTerminalStore';
 
 interface UseTerminalEngineProps {
   onOutput: (data: string) => void;
@@ -13,28 +14,45 @@ interface UseTerminalEngineProps {
 
 export const useTerminalEngine = (props: UseTerminalEngineProps) => {
   const { engineUrl, engineAuthToken } = useSettingsStore();
+  const { sessionId, setSessionId } = useTerminalStore();
   const socketRef = useRef<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
-  // ── Ref-wrap ALL callbacks so socket.onmessage always reads the latest version ──
-  // This permanently fixes stale closure bugs without needing useCallback deps.
   const callbacksRef = useRef(props);
   useEffect(() => {
     callbacksRef.current = props;
   });
 
-  const connect = useCallback(() => {
+  const connect = useCallback(async () => {
     if (socketRef.current) return;
 
     try {
-      const socket = new WebSocket(engineUrl, undefined, {
-        headers: { 'x-auth-token': engineAuthToken }
-      });
+      let activeSessionId = useTerminalStore.getState().sessionId;
+      const httpUrl = engineUrl.replace('ws://', 'http://').replace('wss://', 'https://');
+
+      // 1. If no session exists, provision a new one via HTTP
+      if (!activeSessionId) {
+        const res = await fetch(`${httpUrl}/sessions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-auth-token': engineAuthToken
+          }
+        });
+        if (!res.ok) throw new Error('Failed to start execution container');
+        const data = await res.json();
+        activeSessionId = data.sessionId;
+        setSessionId(activeSessionId);
+      }
+
+      // 2. Open WebSocket connection
+      const wsUrl = `${engineUrl}/sessions/${activeSessionId}/terminal?token=${engineAuthToken}`;
+      const socket = new WebSocket(wsUrl);
+      socketRef.current = socket;
 
       socket.onopen = () => {
         setIsConnected(true);
         callbacksRef.current.onConnected?.();
-        console.log('[Terminal Engine] Connected');
       };
 
       socket.onmessage = (event) => {
@@ -42,33 +60,25 @@ export const useTerminalEngine = (props: UseTerminalEngineProps) => {
           const payload = JSON.parse(event.data);
           if (payload.type === 'output') {
             callbacksRef.current.onOutput(payload.data);
-          } else if (payload.type === 'upload_ack') {
-            console.log('[Terminal Engine] Upload acknowledged:', payload.filename);
-            callbacksRef.current.onUploadAck?.(payload.filename);
           }
-        } catch (e) {
-          console.warn('[Terminal Engine] Failed to parse message:', event.data);
-        }
+        } catch (e) {}
       };
 
-      socket.onclose = (e) => {
+      socket.onclose = () => {
         setIsConnected(false);
         socketRef.current = null;
         callbacksRef.current.onDisconnected?.();
-        console.log('[Terminal Engine] Disconnected');
       };
 
       socket.onerror = (e: any) => {
         const msg = e.message || JSON.stringify(e);
         callbacksRef.current.onError?.(msg);
-        console.error('[Terminal Engine] Error:', msg);
       };
 
-      socketRef.current = socket;
     } catch (err: any) {
       callbacksRef.current.onError?.(err.message);
     }
-  }, [engineUrl, engineAuthToken]);
+  }, [engineUrl, engineAuthToken, setSessionId]);
 
   const disconnect = useCallback(() => {
     if (socketRef.current) {
@@ -80,19 +90,38 @@ export const useTerminalEngine = (props: UseTerminalEngineProps) => {
   const sendInput = useCallback((data: string) => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {
       socketRef.current.send(JSON.stringify({ type: 'input', data }));
-    } else {
-      console.warn('[Terminal Engine] sendInput called but socket is not open');
     }
   }, []);
 
   const sendFile = useCallback((filename: string, content: string) => {
-    if (socketRef.current?.readyState === WebSocket.OPEN) {
-      console.log('[Terminal Engine] Uploading file:', filename);
-      socketRef.current.send(JSON.stringify({ type: 'upload', filename, content }));
-    } else {
-      console.warn('[Terminal Engine] sendFile called but socket is not open');
+    const activeSessionId = useTerminalStore.getState().sessionId;
+    if (!activeSessionId) {
+      callbacksRef.current.onError?.('No active sandbox session available');
+      return;
     }
-  }, []);
+
+    const httpUrl = engineUrl.replace('ws://', 'http://').replace('wss://', 'https://');
+
+    fetch(`${httpUrl}/sessions/${activeSessionId}/upload`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-auth-token': engineAuthToken
+      },
+      body: JSON.stringify({ filename, content })
+    })
+    .then(async (res) => {
+      if (res.ok) {
+        callbacksRef.current.onUploadAck?.(filename);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        callbacksRef.current.onError?.(errData.error || `Upload failed: ${res.status}`);
+      }
+    })
+    .catch((err) => {
+      callbacksRef.current.onError?.(`Upload error: ${err.message}`);
+    });
+  }, [engineUrl, engineAuthToken]);
 
   const sendResize = useCallback((cols: number, rows: number) => {
     if (socketRef.current?.readyState === WebSocket.OPEN) {

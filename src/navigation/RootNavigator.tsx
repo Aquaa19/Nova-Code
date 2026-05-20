@@ -9,6 +9,8 @@ import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
 import { FileExplorerScreen } from '../screens/FileExplorerScreen';
 import { PackageManagerScreen } from '../screens/PackageManagerScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { TerminalScreen } from '../screens/TerminalScreen';
+import { PreviewScreen } from '../screens/PreviewScreen';
 import { AuthScreen } from '../screens/AuthScreen';
 import { EditorStack } from './EditorStack';
 import { BottomTabBar } from '../components/navigation/BottomTabBar';
@@ -21,6 +23,8 @@ const getIconForRoute = (routeName: string): string => {
   switch (routeName) {
     case 'Files': return 'folder-outline';
     case 'Editor': return 'code-braces';
+    case 'Preview': return 'web';
+    case 'Terminal': return 'console';
     case 'Packages': return 'package-variant';
     case 'Settings': return 'account-outline';
     default: return 'circle-outline';
@@ -53,6 +57,8 @@ function MainTabs() {
     >
       <Tab.Screen name="Files" component={FileExplorerScreen} />
       <Tab.Screen name="Editor" component={EditorStack} />
+      <Tab.Screen name="Preview" component={PreviewScreen} />
+      <Tab.Screen name="Terminal" component={TerminalScreen} />
       <Tab.Screen name="Packages" component={PackageManagerScreen} />
       <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>

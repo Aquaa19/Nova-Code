@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link rel="stylesheet" href="xterm.css" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: #0d0f1a;
+      height: 100%;
+      overflow: hidden;
+    }
+    #terminal {
+      height: 100%;
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+<body>
+  <div id="terminal"></div>
+  <script src="xterm.js"></script>
+  <script src="xterm-addon-fit.js"></script>
+  <script>
+    const term = new Terminal({
+      theme: { background: '#0d0f1a', foreground: '#f8f8f2', cursor: '#00f0ff' },
+      fontFamily: 'monospace',
+      fontSize: 13,
+      cursorBlink: true
+    });
+    const fitAddon = new FitAddon.FitAddon();
+    term.loadAddon(fitAddon);
+    term.open(document.getElementById('terminal'));
+    
+    // Resize observers
+    window.addEventListener('resize', () => {
+      fitAddon.fit();
+      sendToRN({ type: 'resize', cols: term.cols, rows: term.rows });
+    });
+
+    setTimeout(() => {
+      fitAddon.fit();
+      sendToRN({ type: 'resize', cols: term.cols, rows: term.rows });
+    }, 100);
+
+    // Forward keystrokes to RN
+    term.onData(data => {
+      sendToRN({ type: 'data', data });
+    });
+
+    function sendToRN(msg) {
+      if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(JSON.stringify(msg));
+      }
+    }
+
+    // Process incoming writes from RN
+    window.addEventListener("message", (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        if (msg.type === 'write') {
+          term.write(msg.payload.data);
+        } else if (msg.type === 'clear') {
+          term.clear();
+        } else if (msg.type === 'focus') {
+          term.focus();
+        }
+      } catch(e) {}
+    });
+    
+    sendToRN({ type: 'ready' });
+  </script>
+</body>
+</html>

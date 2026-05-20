@@ -6,41 +6,59 @@ import { useEditorStore } from '../../../store/useEditorStore';
 import { useSettingsStore } from '../../../store/useSettingsStore';
 
 export function useAutosave(
-  getContent: (() => Promise<string>) | null,
   currentPath: string | null,
 ) {
   const { markSaved } = useEditorStore();
   const { autosaveEnabled, autosaveDelayMs } = useSettingsStore();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const getContentRef = useRef(getContent);
+  
   const currentPathRef = useRef(currentPath);
+  const latestContentRef = useRef<string>('');
+  const hasUnsavedChangesRef = useRef<boolean>(false);
 
-  // Keep refs current so the timeout always uses the latest values
-  getContentRef.current = getContent;
+  // Keep path ref updated
   currentPathRef.current = currentPath;
 
-  // Re-arm the debounce timer whenever the path or settings change
+  // Flush function to write pending changes immediately
+  const flushSave = async (path: string, content: string) => {
+    if (!path) return;
+    try {
+      await FileService.writeFile(path, content);
+      markSaved(path);
+    } catch (e) {
+      console.warn('[Autosave] flush failed:', e);
+    }
+  };
+
+  // Re-arm or flush when path or settings change
   useEffect(() => {
-    if (!autosaveEnabled || !getContent || !currentPath) return;
-
-    // Clear any pending save when file switches
-    if (timer.current) clearTimeout(timer.current);
-
+    const prevPath = currentPathRef.current;
+    
     return () => {
-      if (timer.current) clearTimeout(timer.current);
+      // Cleanup: if there are pending unsaved changes for the active file when switching, write them immediately!
+      if (timer.current) {
+        clearTimeout(timer.current);
+        timer.current = null;
+      }
+      if (hasUnsavedChangesRef.current && prevPath) {
+        hasUnsavedChangesRef.current = false;
+        flushSave(prevPath, latestContentRef.current);
+      }
     };
-  }, [currentPath, autosaveEnabled, autosaveDelayMs, getContent]);
+  }, [currentPath, autosaveEnabled, autosaveDelayMs]);
 
-  // Exposed trigger — call this on every content change
-  const triggerAutosave = () => {
+  const triggerAutosave = (content: string) => {
+    latestContentRef.current = content;
+    hasUnsavedChangesRef.current = true;
+    
     if (!autosaveEnabled) return;
     if (timer.current) clearTimeout(timer.current);
+
     timer.current = setTimeout(async () => {
       const path = currentPathRef.current;
-      const fn = getContentRef.current;
-      if (!path || !fn) return;
+      if (!path) return;
       try {
-        const content = await fn();
+        hasUnsavedChangesRef.current = false;
         await FileService.writeFile(path, content);
         markSaved(path);
       } catch (e) {
@@ -49,5 +67,5 @@ export function useAutosave(
     }, autosaveDelayMs);
   };
 
-  return { triggerAutosave };
+  return { triggerAutosave, flushSave };
 }

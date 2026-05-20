@@ -19,6 +19,7 @@ import { FileService } from '../services/FileService';
 import { useEditorStore } from '../store/useEditorStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { useProjectStore } from '../store/useProjectStore';
+import { useTerminalStore } from '../store/useTerminalStore';
 import { useFileOpen } from '../features/editor/hooks/useFileOpen';
 import { useAutosave } from '../features/editor/hooks/useAutosave';
 import { InteractiveConsole } from '../features/terminal/components/InteractiveConsole';
@@ -44,6 +45,7 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
   const { currentProject, saveProjectSession } = useProjectStore();
   const settings = useSettingsStore();
   const { openFileAtPath } = useFileOpen();
+  const { sessionId } = useTerminalStore();
 
   const activeFile = openFiles[activeIndex];
 
@@ -55,42 +57,14 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
     consoleVisible,
     setConsoleVisible,
     terminalLines,
+    outputLines,
     setTerminalLines,
     terminalStatus,
     isConnected,
     isNetworkError
   } = useRunWorkflow(editorRef, activeFile, markSaved);
 
-  const handleRunProject = useCallback(async () => {
-    if (!currentProject) return;
-    try {
-      const files = await FileService.readDir(currentProject.path);
-      const entryPoints = ['main.py', 'index.js', 'Main.java', 'main.cpp', 'main.c'];
-      const entryFile = files.find(f => entryPoints.includes(f.name));
-      
-      if (entryFile) {
-        const lang = FileService.getLanguage(entryFile.name);
-        runProjectOrFile(entryFile.path, lang);
-      } else if (activeFile) {
-        runProjectOrFile(activeFile.path, activeFile.language);
-      } else {
-        Alert.alert('No Entry Point', 'No main entry file found and no file currently open.');
-      }
-    } catch (e) {
-      Alert.alert('Error', 'Failed to scan project directory.');
-    }
-  }, [currentProject, activeFile, runProjectOrFile]);
-
-  const handleRunCurrent = useCallback(() => {
-    if (!isConnected) {
-      if (activeFile) {
-         runProjectOrFile(activeFile.path, activeFile.language);
-      }
-    } else {
-       setConsoleVisible(true);
-       setTerminalLines(prev => [...prev, '\n[Nova Code] Re-using existing session.\n']);
-    }
-  }, [isConnected, activeFile, runProjectOrFile, setConsoleVisible, setTerminalLines]);
+  // Placeholder — handleRunProject and handleRunCurrent are defined after handleSave below
 
   // Keyboard Listeners
   useEffect(() => {
@@ -122,14 +96,73 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
       if (content !== undefined) {
         await FileService.writeFile(activeFile.path, content);
         markSaved(activeFile.path);
+
+        // Auto-sync file changes to execution sandbox if session is running
+        if (sessionId) {
+          const httpUrl = settings.engineUrl.replace('ws://', 'http://').replace('wss://', 'https://');
+          const filename = activeFile.path.split('/').pop() || '';
+          fetch(`${httpUrl}/sessions/${sessionId}/upload`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-auth-token': settings.engineAuthToken,
+            },
+            body: JSON.stringify({ filename, content }),
+          }).catch(e => console.warn('[Sync] failed to upload save to sandbox:', e));
+        }
       }
     } catch (e) {
       Alert.alert('Save Error', 'Could not write to file.');
     }
-  }, [activeFile, markSaved]);
+  }, [activeFile, markSaved, sessionId, settings.engineUrl, settings.engineAuthToken]);
+
+  const handleRunProject = useCallback(async () => {
+    if (!currentProject) return;
+    try {
+      const files = await FileService.readDir(currentProject.path);
+      const entryPoints = ['index.html', 'main.py', 'index.js', 'Main.java', 'main.cpp', 'main.c'];
+      const entryFile = files.find(f => entryPoints.includes(f.name));
+
+      if (entryFile) {
+        const lang = FileService.getLanguage(entryFile.name);
+        if (lang === 'html') {
+          await handleSave();
+          navigation.navigate('Preview');
+        } else {
+          runProjectOrFile(entryFile.path, lang);
+        }
+      } else if (activeFile) {
+        if (activeFile.language === 'html') {
+          await handleSave();
+          navigation.navigate('Preview');
+        } else {
+          runProjectOrFile(activeFile.path, activeFile.language);
+        }
+      } else {
+        Alert.alert('No Entry Point', 'No main entry file found and no file currently open.');
+      }
+    } catch (e) {
+      Alert.alert('Error', 'Failed to scan project directory.');
+    }
+  }, [currentProject, activeFile, runProjectOrFile, handleSave, navigation]);
+
+  const handleRunCurrent = useCallback(async () => {
+    if (activeFile?.language === 'html') {
+      await handleSave();
+      navigation.navigate('Preview');
+      return;
+    }
+    if (!isConnected) {
+      if (activeFile) {
+        runProjectOrFile(activeFile.path, activeFile.language);
+      }
+    } else {
+      setConsoleVisible(true);
+      setTerminalLines(prev => [...prev, '\n[Nova Code] Re-using existing session.\n']);
+    }
+  }, [isConnected, activeFile, runProjectOrFile, setConsoleVisible, setTerminalLines, handleSave, navigation]);
 
   const { triggerAutosave } = useAutosave(
-    editorRef.current ? () => editorRef.current!.getContent() : null,
     activeFile?.path ?? null
   );
 
@@ -325,10 +358,10 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
                 wordWrap={settings.wordWrap}
                 lineNumbers={settings.lineNumbers}
                 tabSize={settings.tabWidth}
-                onContentChange={() => {
+                onContentChange={(content) => {
                   editorRef.current?.clearErrorLine();
                   markUnsaved(activeFile.path);
-                  triggerAutosave();
+                  triggerAutosave(content);
                 }}
                 onCursorChange={(line, col) => updateCursor(activeFile.path, line, col)}
                 onSearchResults={(count, index) => {
@@ -418,7 +451,8 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
         onRetry={() => activeFile && runProjectOrFile(activeFile.path, activeFile.language)}
         onInput={(data) => sendInput(data)}
         onStop={stopRun}
-        lines={terminalLines}
+        terminalLines={terminalLines}
+        outputLines={outputLines}
         onClear={() => setTerminalLines([])}
       />
     </ScreenContainer>

@@ -330,22 +330,22 @@ TerminalScreen
 #### Required Work
 
 ##### React Native Side
-- [ ] Replace the static `TerminalView` with an `xterm.js` instance running inside a `react-native-webview`
-- [ ] Bundle `xterm.js` and `xterm-addon-fit` locally in `src/assets/terminal/terminal.html`
-- [ ] Implement `TerminalBridge` (mirrors the editor bridge pattern):
+- [x] Replace the static `TerminalView` with an `xterm.js` instance running inside a `react-native-webview`
+- [x] Bundle `xterm.js` and `xterm-addon-fit` locally in `src/assets/terminal/terminal.html`
+- [x] Implement `TerminalBridge` (mirrors the editor bridge pattern):
   - `send(data: string)` → WS send → PTY stdin
   - `resize(cols: number, rows: number)` → WS resize event
   - `onData(handler)` → PTY stdout → xterm write
   - `onDisconnect(handler)` → show reconnect UI
-- [ ] Add terminal session state to `useTerminalStore`:
+- [x] Add terminal session state to `useTerminalStore`:
   - `isConnected: boolean`
   - `sessionId: string | null`
   - `connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error'`
-- [ ] **Reconnect behavior**: on disconnect, show a banner "Disconnected — Tap to reconnect"; attempt auto-reconnect up to 3 times with exponential backoff
-- [ ] Handle `onMessage` from xterm.js WebView for terminal-to-RN events (title changes, bell, etc.)
+- [x] **Reconnect behavior**: on disconnect, show a banner "Disconnected — Tap to reconnect"; attempt auto-reconnect up to 3 times with exponential backoff
+- [x] Handle `onMessage` from xterm.js WebView for terminal-to-RN events (title changes, bell, etc.)
 
 ##### Terminal Keyboard
-- [ ] Extend `KeyboardAccessoryBar` for terminal mode:
+- [x] Extend `KeyboardAccessoryBar` for terminal mode:
   - `Ctrl+C` (interrupt), `Ctrl+D` (EOF), `Ctrl+Z` (suspend)
   - `Tab` (completion), `↑` (history up), `↓` (history down)
   - Arrow keys, Home, End, Page Up/Down
@@ -424,12 +424,12 @@ Open WS terminal connection
     └── DELETE /sessions/:id on logout or explicit close
 ```
 
-- [ ] **Per-user sessions** — each authenticated user gets at most N concurrent sessions (configurable, default 2)
-- [ ] **Project upload before run** — before running a command, sync the project's files from the device to the session's working directory
-- [ ] **Working directory management** — sessions always start in `/workspace/{projectName}/`
-- [ ] **Idle timeout** — sessions idle for >30 minutes are automatically terminated and resources freed
-- [ ] **Session cleanup** — on user logout, explicitly terminate all their sessions
-- [ ] **Max session duration** — hard cap at 2 hours even if active (prevent forgotten sessions)
+- [x] **Per-user sessions** — each authenticated user gets at most N concurrent sessions (configurable, default 2)
+- [x] **Project upload before run** — before running a command, sync the project's files from the device to the session's working directory
+- [x] **Working directory management** — sessions always start in `/workspace/{projectName}/`
+- [x] **Idle timeout** — sessions idle for >30 minutes are automatically terminated and resources freed
+- [x] **Session cleanup** — on user logout, explicitly terminate all their sessions
+- [x] **Max session duration** — hard cap at 2 hours even if active (prevent forgotten sessions)
 
 #### Acceptance Criteria
 
@@ -493,11 +493,11 @@ docker run \
   session-image
 ```
 
-- [ ] Move from direct host shell to Docker container execution
-- [ ] Apply all resource limits above to every container
-- [ ] **File path validation** — validate all uploaded file paths: no `../`, no absolute paths, no symlinks, max path length 255 chars, no null bytes
-- [ ] **Authentication** — WebSocket connections require a valid JWT Bearer token
-- [ ] **Authorization** — verify the JWT `userId` matches the `sessionOwnerId` before accepting WS messages
+- [x] Move from direct host shell to Docker container execution
+- [x] Apply all resource limits above to every container
+- [x] **File path validation** — validate all uploaded file paths: no `../`, no absolute paths, no symlinks, max path length 255 chars, no null bytes
+- [x] **Authentication** — WebSocket connections require a valid JWT Bearer token
+- [x] **Authorization** — verify the JWT `userId` matches the `sessionOwnerId` before accepting WS messages
 - [ ] **Rate limiting**:
   - Session creation: max 5 sessions per user per hour
   - Command execution: max 30 commands per session per minute
@@ -510,12 +510,12 @@ docker run \
 
 #### Security Checklist (Required Before Any Real Users)
 
-- [ ] Student code cannot read host filesystem
-- [ ] Student code cannot access other students' session containers
-- [ ] Student code cannot open outbound network connections (except during package install)
+- [x] Student code cannot read host filesystem
+- [x] Student code cannot access other students' session containers
+- [x] Student code cannot open outbound network connections (except during package install)
 - [ ] Container cannot be escaped via known kernel exploits (keep host kernel patched)
-- [ ] All secrets (JWT secret, DB credentials) are environment variables, not in code
-- [ ] JWT tokens expire and are rotated
+- [x] All secrets (JWT secret, DB credentials) are environment variables, not in code
+- [x] JWT tokens expire and are rotated
 
 #### Acceptance Criteria
 

@@ -26,7 +26,8 @@ interface InteractiveConsoleProps {
   onRetry?: () => void;
   onInput: (data: string) => void;
   onStop: () => void;
-  lines: string[];
+  terminalLines: string[];
+  outputLines: string[];
   onClear: () => void;
 }
 
@@ -39,19 +40,22 @@ export const InteractiveConsole: React.FC<InteractiveConsoleProps> = ({
   onRetry,
   onInput,
   onStop,
-  lines,
+  terminalLines,
+  outputLines,
   onClear,
 }) => {
   const scrollRef = useRef<ScrollView>(null);
   const [inputText, setInputText] = useState('');
   const [activeTab, setActiveTab] = useState<'output' | 'terminal'>('output');
 
+  const currentLines = activeTab === 'output' ? outputLines : terminalLines;
+
   // Auto-scroll whenever new lines arrive
   useEffect(() => {
-    if (lines.length > 0) {
+    if (currentLines.length > 0) {
       setTimeout(() => scrollRef.current?.scrollToEnd({ animated: false }), 20);
     }
-  }, [lines.length]);
+  }, [currentLines.length]);
 
   // Reset states when console opens
   useEffect(() => {
@@ -154,10 +158,12 @@ export const InteractiveConsole: React.FC<InteractiveConsoleProps> = ({
             contentContainerStyle={styles.outputContent}
             keyboardShouldPersistTaps="handled"
           >
-            {lines.length === 0 ? (
-              <Text style={styles.placeholder}>Waiting for output...</Text>
+            {currentLines.length === 0 ? (
+              <Text style={styles.placeholder}>
+                {activeTab === 'output' ? 'Waiting for output...' : 'Waiting for terminal...'}
+              </Text>
             ) : (
-              lines.map((line, i) => (
+              currentLines.map((line, i) => (
                 <Text key={i} style={styles.outputLine} selectable>
                   {line || ' '}
                 </Text>
