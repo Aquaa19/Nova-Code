@@ -12,7 +12,12 @@
           "package_name": "com.novacode"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "532169711828-0s621odt3dt7fep4realsc00ghrf1rt5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyARNE8G1GBkwLsQypDknLDhZrcRya1G5R8"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "532169711828-0s621odt3dt7fep4realsc00ghrf1rt5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

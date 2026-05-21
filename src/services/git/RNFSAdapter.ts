@@ -16,52 +16,126 @@ const wrapError = (err: any) => {
   return err;
 };
 
+const logDebug = async (msg: string) => {
+  try {
+    // Locate project root to write log file
+    const match = msg.match(/\/projects\/[^/]+/);
+    if (match) {
+      const idx = msg.indexOf(match[0]);
+      const projectPath = msg.substring(0, idx + match[0].length);
+      const logPath = `${projectPath}/git_debug_log.txt`;
+      await RNFS.appendFile(logPath, `${new Date().toISOString()} - ${msg}\n`, 'utf8');
+    }
+  } catch {}
+};
+
 const readFile = async (path: string, options?: any) => {
   try {
-    const encoding = typeof options === 'string' ? options : options?.encoding ?? 'utf8';
+    const encoding = typeof options === 'string' ? options : options?.encoding;
+    await logDebug(`readFile: ${path} (encoding: ${encoding})`);
     if (encoding === 'utf8') return await RNFS.readFile(path, 'utf8');
     const base64 = await RNFS.readFile(path, 'base64');
     return Buffer.from(base64, 'base64');
-  } catch (e) { throw wrapError(e); }
+  } catch (e: any) {
+    await logDebug(`readFile ERROR: ${path} - ${e.message || e}`);
+    throw wrapError(e);
+  }
 };
 
 const writeFile = async (path: string, data: string | Buffer) => {
   try {
+    await logDebug(`writeFile: ${path}`);
     if (typeof data === 'string') {
       await RNFS.writeFile(path, data, 'utf8');
     } else {
-      await RNFS.writeFile(path, data.toString('base64'), 'base64');
+      const buffer = Buffer.isBuffer(data) ? data : Buffer.from(data);
+      await RNFS.writeFile(path, buffer.toString('base64'), 'base64');
     }
-  } catch (e) { throw wrapError(e); }
+  } catch (e: any) {
+    await logDebug(`writeFile ERROR: ${path} - ${e.message || e}`);
+    throw wrapError(e);
+  }
 };
 
 const mkdir = async (path: string) => {
-  try { await RNFS.mkdir(path); } catch (e) { throw wrapError(e); }
+  try {
+    await logDebug(`mkdir: ${path}`);
+    await RNFS.mkdir(path);
+  } catch (e: any) {
+    await logDebug(`mkdir ERROR: ${path} - ${e.message || e}`);
+    throw wrapError(e);
+  }
 };
 
 const rmdir = async (path: string) => {
-  try { await RNFS.unlink(path); } catch (e) { throw wrapError(e); }
+  try {
+    await logDebug(`rmdir: ${path}`);
+    await RNFS.unlink(path);
+  } catch (e: any) {
+    await logDebug(`rmdir ERROR: ${path} - ${e.message || e}`);
+    throw wrapError(e);
+  }
 };
 
 const unlink = async (path: string) => {
-  try { await RNFS.unlink(path); } catch (e) { throw wrapError(e); }
+  try {
+    await logDebug(`unlink: ${path}`);
+    await RNFS.unlink(path);
+  } catch (e: any) {
+    await logDebug(`unlink ERROR: ${path} - ${e.message || e}`);
+    throw wrapError(e);
+  }
+};
+
+const parseTime = (val: any): Date => {
+  if (!val) return new Date();
+  if (val instanceof Date) return val;
+  if (typeof val === 'number') {
+    return new Date(val < 10000000000 ? val * 1000 : val);
+  }
+  if (typeof val === 'string') {
+    const num = Number(val);
+    if (!isNaN(num)) {
+      return new Date(num < 10000000000 ? num * 1000 : num);
+    }
+    return new Date(val);
+  }
+  return new Date();
 };
 
 const stat = async (path: string) => {
   try {
     const s = await RNFS.stat(path);
+    const isFileFunc = typeof s.isFile === 'function';
+    const isDirFunc = typeof s.isDirectory === 'function';
+    const isFile = isFileFunc ? s.isFile() : !!s.isFile;
+    const isDir = isDirFunc ? s.isDirectory() : !!s.isDirectory;
+    await logDebug(`stat SUCCESS: ${path} (isFile: ${isFile}, isDir: ${isDir})`);
+    
+    const mtimeDate = parseTime(s.mtime);
+    const ctimeDate = parseTime(s.ctime || s.mtime);
     return {
-      isFile: () => s.isFile(),
-      isDirectory: () => s.isDirectory(),
+      isFile: () => isFile,
+      isDirectory: () => isDir,
       isSymbolicLink: () => false,
       size: s.size,
-      mtimeMs: s.mtime ? new Date(s.mtime).getTime() : Date.now(),
-      mode: 0o666,
+      mtime: mtimeDate,
+      mtimeMs: mtimeDate.getTime(),
+      ctime: ctimeDate,
+      ctimeMs: ctimeDate.getTime(),
+      atime: mtimeDate,
+      atimeMs: mtimeDate.getTime(),
+      birthtime: ctimeDate,
+      birthtimeMs: ctimeDate.getTime(),
+      mode: s.mode || 0o666,
       ino: 0,
       uid: 0,
       gid: 0,
     };
-  } catch (e) { throw wrapError(e); }
+  } catch (e: any) {
+    await logDebug(`stat ERROR: ${path} - ${e.message || e}`);
+    throw wrapError(e);
+  }
 };
 
 const lstat = async (path: string) => {
@@ -88,7 +162,13 @@ const symlink = async (target: string, path: string): Promise<void> => {
 };
 
 const rename = async (oldPath: string, newPath: string) => {
-  try { await RNFS.moveFile(oldPath, newPath); } catch (e) { throw wrapError(e); }
+  try {
+    await logDebug(`rename: ${oldPath} to ${newPath}`);
+    await RNFS.moveFile(oldPath, newPath);
+  } catch (e: any) {
+    await logDebug(`rename ERROR: ${oldPath} - ${e.message || e}`);
+    throw wrapError(e);
+  }
 };
 
 const chmod = async () => {

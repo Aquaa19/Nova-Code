@@ -78,6 +78,11 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
                       isSelected && styles.cardSelected
                     ]}
                   >
+                    {isSelected && (
+                      <View style={styles.selectedIndicator}>
+                        <MaterialCommunityIcons name="check-circle" size={16} color={tmpl.color} />
+                      </View>
+                    )}
                     <MaterialCommunityIcons 
                       name={tmpl.icon} 
                       size={32} 
@@ -86,8 +91,8 @@ export const NewProjectModal: React.FC<NewProjectModalProps> = ({
                     />
                     <AppText 
                       variant="labelXs" 
-                      color={isSelected ? theme.colors.onSurface : theme.colors.onSurfaceVariant}
-                      style={styles.cardText}
+                      color={isSelected ? theme.colors.white : theme.colors.onSurfaceVariant}
+                      style={[styles.cardText, isSelected && { fontWeight: 'bold' }]}
                     >
                       {tmpl.name}
                     </AppText>
@@ -163,8 +168,18 @@ const styles = StyleSheet.create({
     minHeight: 100,
   },
   cardSelected: {
-    borderColor: theme.colors.primary,
-    backgroundColor: 'rgba(0, 240, 255, 0.05)',
+    borderColor: theme.colors.primaryFixed,
+    backgroundColor: 'rgba(0, 240, 255, 0.12)',
+    shadowColor: theme.colors.primaryFixed,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  selectedIndicator: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
   },
   cardIcon: {
     marginBottom: theme.spacing.s2,

@@ -629,11 +629,11 @@ type ConsoleEntry = {
 
 #### Required Work
 
-- [ ] **Improved templates** — `main.py` starter + `requirements.txt` (empty)
-- [ ] **stdin support** — when a program calls `input()`, the terminal must accept keyboard input; this is already handled by the PTY terminal in Phase 2, but the run button workflow must also support stdin (route output to the interactive terminal, not just the output panel)
-- [ ] **pip integration** — implement through the package manager (Phase 5); for now, ensure `pip3 install <package>` works in the terminal
-- [ ] **Traceback display** — detect Python tracebacks in stderr output; highlight the file name and line number; if the file is open in the editor, show a red squiggly on the error line (via bridge message `MARK_ERROR`)
-- [ ] **Basic formatting** — if `autopep8` or `black` is available in the container, add a "Format" button in the editor header for `.py` files
+- [x] **Improved templates** — `main.py` starter + `requirements.txt` (empty)
+- [x] **stdin support** — when a program calls `input()`, the terminal must accept keyboard input; this is already handled by the PTY terminal in Phase 2, but the run button workflow must also support stdin (route output to the interactive terminal, not just the output panel)
+- [x] **pip integration** — implement through the package manager (Phase 5); for now, ensure `pip3 install <package>` works in the terminal
+- [x] **Traceback display** — detect Python tracebacks in stderr output; highlight the file name and line number; if the file is open in the editor, show a red squiggly on the error line (via bridge message `MARK_ERROR`)
+- [x] **Basic formatting** — if `autopep8` or `black` is available in the container, add a "Format" button in the editor header for `.py` files
 
 #### `nova-engine` Python environment
 ```dockerfile
@@ -660,14 +660,14 @@ RUN pip3 install autopep8 black \
 
 #### Required Work
 
-- [ ] **Node project templates**:
-  - Blank Node: `index.js` + `package.json`
-  - Express server: `index.js` + `package.json` with express dependency
-  - Frontend: `index.html` + `style.css` + `script.js`
-- [ ] **`package.json` scripts** — detect `start` and `dev` scripts; show them as run options in the editor header menu
-- [ ] **npm install** — run `npm install` automatically when a project with a `package.json` is first opened in a session; show progress in the terminal
-- [ ] **npm output display** — npm installs produce verbose output; filter it to show only errors and the final "added N packages" summary line by default, with a "Show full log" toggle
-- [ ] **Error display** — Node.js errors include stack traces; detect them in stderr, highlight filenames and line numbers
+- [x] **Node project templates**:
+  - [x] Blank Node: `index.js` + `package.json`
+  - [x] Express server: `index.js` + `package.json` with express dependency
+  - [x] Frontend: `index.html` + `style.css` + `script.js`
+- [x] **`package.json` scripts** — detect `start` and `dev` scripts; show them as run options in the editor header menu
+- [x] **npm install** — run `npm install` automatically when a project with a `package.json` is first opened in a session; show progress in the terminal
+- [x] **npm output display** — npm installs produce verbose output; filter it to show only errors and the final "added N packages" summary line by default, with a "Show full log" toggle
+- [x] **Error display** — Node.js errors include stack traces; detect them in stderr, highlight filenames and line numbers
 
 #### Acceptance Criteria
 
@@ -687,13 +687,13 @@ RUN pip3 install autopep8 black \
 
 #### Required Work
 
-- [ ] **Richer web templates**:
-  - Blank HTML: minimal `index.html` + `style.css` + `script.js`
-  - Bootstrap starter: includes Bootstrap CDN links
-  - Canvas game starter: `index.html` with `<canvas>` and basic game loop in `script.js`
-- [ ] **Auto-connect to browser preview** — running an HTML project opens `PreviewScreen` instead of the terminal
-- [ ] **Asset handling** — the preview server must serve images, fonts, and other static files from the project directory correctly (this works automatically if the HTTP server serves the whole project directory)
-- [ ] **Better CM6 support for web** — ensure HTML, CSS, and JS completions are enabled in `cm6-build`:
+- [x] **Richer web templates**:
+  - [x] Blank HTML: minimal `index.html` + `style.css` + `script.js`
+  - [x] Bootstrap starter: includes Bootstrap CDN links
+  - [x] Canvas game starter: `index.html` with `<canvas>` and basic game loop in `script.js`
+- [x] **Auto-connect to browser preview** — running an HTML project opens `PreviewScreen` instead of the terminal
+- [x] **Asset handling** — the preview server must serve images, fonts, and other static files from the project directory correctly (this works automatically if the HTTP server serves the whole project directory)
+- [x] **Better CM6 support for web** — ensure HTML, CSS, and JS completions are enabled in `cm6-build`:
   - HTML: tag name completion, attribute completion, closing tag auto-insertion
   - CSS: property completion, value completion
   - JS (inside HTML): `@codemirror/lang-javascript` applied to `<script>` blocks via `@codemirror/lang-html`'s mixed language support
@@ -723,20 +723,20 @@ Add to the language map and export in the CM6 bundle.
 
 #### Required Work
 
-- [ ] **Java syntax support in `cm6-build`** — add `@codemirror/lang-java`, export as part of the language bundle
-- [ ] **Project template** — `src/Main.java` with a valid `public class Main { public static void main(String[] args) { ... } }`
-- [ ] **Package/class naming** — template generator must set the class name to match the filename
-- [ ] **Compile and run flow**:
+- [x] **Java syntax support in `cm6-build`** — add `@codemirror/lang-java`, export as part of the language bundle
+- [x] **Project template** — `src/Main.java` with a valid `public class Main { public static void main(String[] args) { ... } }`
+- [x] **Package/class naming** — template generator must set the class name to match the filename
+- [x] **Compile and run flow**:
   ```bash
   javac -cp . Main.java && java Main
   ```
   Detect `*.java` files and compile all of them (multi-class support)
-- [ ] **Compiler error display** — `javac` errors include filename, line number, and a caret pointing to the problem; parse these and display them clearly; send `MARK_ERROR` bridge messages to highlight lines in the editor
-- [ ] **Common error hints** — detect and augment these common Java errors with student-friendly messages:
+- [x] **Compiler error display** — `javac` errors include filename, line number, and a caret pointing to the problem; parse these and display them clearly; send `MARK_ERROR` bridge messages to highlight lines in the editor
+- [x] **Common error hints** — detect and augment these common Java errors with student-friendly messages:
   - `NullPointerException` → "You're trying to use a variable that is null"
   - `ArrayIndexOutOfBoundsException` → "You're trying to access an array index that doesn't exist"
   - `ClassNotFoundException` → "Check that your class name matches your filename"
-- [ ] **Maven support** — 🚫 Defer to v2. Basic `javac`/`java` is sufficient for students.
+- [x] **Maven support** — 🚫 Defer to v2. Basic `javac`/`java` is sufficient for students.
 
 #### Engine Java Environment
 ```dockerfile
@@ -766,18 +766,18 @@ npm install @codemirror/lang-cpp
 
 #### Required Work
 
-- [ ] **Syntax support** — add `@codemirror/lang-cpp` to `cm6-build` for both C and C++
-- [ ] **C template** — `main.c` with `#include <stdio.h>` and `printf`
-- [ ] **C++ template** — `main.cpp` with `#include <iostream>` and `cout`
-- [ ] **Compile and run flow**:
+- [x] **Syntax support** — add `@codemirror/lang-cpp` to `cm6-build` for both C and C++
+- [x] **C template** — `main.c` with `#include <stdio.h>` and `printf`
+- [x] **C++ template** — `main.cpp` with `#include <iostream>` and `cout`
+- [x] **Compile and run flow**:
   - C: `gcc main.c -o out -lm && ./out`
   - C++: `g++ main.cpp -o out && ./out`
-- [ ] **Compiler error display** — `gcc`/`g++` errors include `filename:line:col: error: message`; parse and display; send `MARK_ERROR` to editor
-- [ ] **Common error hints**:
+- [x] **Compiler error display** — `gcc`/`g++` errors include `filename:line:col: error: message`; parse and display; send `MARK_ERROR` to editor
+- [x] **Common error hints**:
   - `segmentation fault` → "Your program accessed memory it shouldn't. Check array bounds and pointer usage."
   - `implicit declaration` → "You're using a function without including its header file."
   - `undefined reference` → "You declared a function but never defined it, or forgot to link a library."
-- [ ] **stdin support** — route execution to the interactive terminal (same as Python)
+- [x] **stdin support** — route execution to the interactive terminal (same as Python)
 
 #### Acceptance Criteria
 
@@ -809,28 +809,36 @@ npm install @codemirror/lang-cpp
 ### Required Work
 
 #### Search
-- [ ] Wire `SearchInput` in `PackageManagerScreen` to the npm registry API for Node projects:
+- [x] Wire `SearchInput` in `PackageManagerScreen` to the npm registry API for Node projects:
   ```
   GET https://registry.npmjs.org/-/v1/search?text={query}&size=20
   ```
-- [ ] For Python projects, use the PyPI JSON API:
+- [x] For Python projects, use the PyPI JSON API:
   ```
   GET https://pypi.org/pypi/{package}/json
   GET https://pypi.org/search/?q={query}  (scrape or use PyPI XML endpoint)
   ```
-- [ ] Detect the current project's language and show the appropriate package ecosystem
-- [ ] Cache last 20 searches per ecosystem in MMKV (expire after 1 hour)
+- [x] Detect the current project's language and show the appropriate package ecosystem
+- [x] Cache last 20 searches per ecosystem in MMKV (expire after 1 hour)
+
+#### Sandbox Connectivity & Python Target Paths
+- [x] **Internet Access**: Omit `--network=none` (or change to `--network=bridge`) inside the backend `docker run` statement in `server.js` to enable internet access for both terminal operations and UI installations.
+- [x] **Unified Python Package Path**:
+  - Configure Python runner environment variables: set `PYTHONPATH=/workspace/.python_packages` in the `docker run` environment or when executing python scripts.
+  - Setup container environment profile or alias inside `docker run` (e.g. by passing `-e PYTHONPATH=/workspace/.python_packages` and custom alias/configs) so that manual `pip3 install` from the PTY terminal automatically targets `--target=/workspace/.python_packages`.
+  - Ensure both the Package Manager UI installer and the PTY terminal write packages to the same persistent `/workspace/.python_packages` folder.
 
 #### Install / Uninstall / Update
-- [ ] **Install flow**:
+- [x] **Backend `/exec` Endpoint**: Add `POST /sessions/:sessionId/exec` in `server.js` to spawn and stream command output (e.g., `npm install <pkg>` or `pip install --target=/workspace/.python_packages <pkg>`) using Server-Sent Events (SSE) or simple response chunks.
+- [x] **Install flow**:
   1. User taps "Install" on a package
-  2. App sends `npm install <package>` or `pip3 install <package>` to the active session via the engine's exec API
+  2. App sends `npm install <package>` or `pip3 install --target=/workspace/.python_packages <package>` to the active session via the engine's exec API
   3. Show real-time log output in `InstallProgressCard`
   4. On success: update `package.json` / `requirements.txt` on disk and re-upload to session
   5. On failure: show the error log with a "Retry" button
-- [ ] **Uninstall** — `npm uninstall <package>` or `pip3 uninstall -y <package>` via engine exec
-- [ ] **Update** — `npm update <package>` or `pip3 install --upgrade <package>`
-- [ ] **Installed packages list** — read `package.json` dependencies / `requirements.txt` to populate the installed tab
+- [x] **Uninstall** — `npm uninstall <package>` or `pip3 uninstall -y <package>` (or delete from `.python_packages`) via engine exec
+- [x] **Update** — `npm update <package>` or `pip3 install --upgrade --target=/workspace/.python_packages <package>`
+- [x] **Installed packages list** — read `package.json` dependencies / parse `.python_packages` or `requirements.txt` to populate the installed tab
 
 #### Package Manager Screen Tabs
 
@@ -875,36 +883,36 @@ PackageManagerScreen
 ### Required Work
 
 #### Local Git (Complete First)
-- [ ] Verify `GitService` (isomorphic-git + RNFS adapter) works reliably for:
+- [x] Verify `GitService` (isomorphic-git + RNFS adapter) works reliably for:
   - `git.init` — create a new repo in the project directory
   - `git.statusMatrix` — get per-file change status
   - `git.add` — stage a file
   - `git.commit` — create a commit with message and author
   - `git.log` — read commit history (depth: 20)
-- [ ] **File tree status badges** — after any save or commit, refresh `gitService.statusMatrix()` and update file tree badges:
+- [x] **File tree status badges** — after any save or commit, refresh `gitService.statusMatrix()` and update file tree badges:
   - `M` modified (orange dot)
   - `A` newly added (green dot)
   - `D` deleted (red dot)
   - `U` untracked (gray dot)
-- [ ] **Commit screen** — a bottom sheet or modal with:
+- [x] **Commit screen** — a bottom sheet or modal with:
   - Staged files checklist (checkboxes to stage/unstage)
   - Commit message text input
   - Author name and email (auto-fill from MMKV `gitAuthorName` / `gitAuthorEmail`)
   - "Commit" button
-- [ ] **Diff view** — show a simple side-by-side or inline diff for a selected file using the `diff` npm package against the HEAD version
-- [ ] **History screen** — a `FlatList` of commits showing: short hash, message, author, date
+- [x] **Diff view** — show a simple side-by-side or inline diff for a selected file using the `diff` npm package against the HEAD version
+- [x] **History screen** — a `FlatList` of commits showing: short hash, message, author, date
 
 #### Remote Git (Only After Local Is Solid)
-- [ ] **Clone screen** — URL input + PAT (Personal Access Token) input + destination folder selector
-- [ ] **Push** — push current branch to origin using stored PAT
-- [ ] **Pull** — pull latest changes from origin
-- [ ] **PAT storage** — store encrypted in MMKV; never log or expose in UI
-- [ ] **Conflict detection** — if a merge conflict occurs, show a clear "Merge conflict in X files — resolve manually or abort" message; do NOT attempt automatic resolution in v1
+- [x] **Clone screen** — URL input + PAT (Personal Access Token) input + destination folder selector
+- [x] **Push** — push current branch to origin using stored PAT
+- [x] **Pull** — pull latest changes from origin
+- [x] **PAT storage** — store encrypted in MMKV; never log or expose in UI
+- [x] **Conflict detection** — if a merge conflict occurs, show a clear "Merge conflict in X files — resolve manually or abort" message; do NOT attempt automatic resolution in v1
 
 #### Safety Guards
-- [ ] Confirm dialog before any destructive operation (reset, force push)
-- [ ] Never show a "force push" option in the UI — too dangerous for students
-- [ ] Show a clear warning if the user tries to commit with no staged files
+- [x] Confirm dialog before any destructive operation (reset, force push)
+- [x] Never show a "force push" option in the UI — too dangerous for students
+- [x] Show a clear warning if the user tries to commit with no staged files
 
 #### Acceptance Criteria
 
@@ -941,17 +949,17 @@ PackageManagerScreen
 ### Required Work
 
 #### Auth Audit
-- [ ] Audit the existing Firebase auth flow for:
+- [x] Audit the existing Firebase auth flow for:
   - Token refresh handling (what happens when the token expires mid-session?)
   - Login failure handling (network error vs wrong credentials)
   - Sign-out flow — must clear: MMKV session tokens, Zustand user state, active engine sessions
-- [ ] Add a proper `AuthService` wrapping Firebase with predictable error types:
+- [x] Add a proper `AuthService` wrapping Firebase with predictable error types:
   ```typescript
   type AuthError = 'network' | 'invalid-credentials' | 'user-not-found' | 'too-many-requests' | 'unknown';
   ```
 
 #### Settings Sync
-- [ ] Define a `UserSettings` schema (Firestore document or Supabase row):
+- [x] Define a `UserSettings` schema (Firestore document or Supabase row):
   ```typescript
   type UserSettings = {
     theme: 'dark' | 'light' | 'high-contrast';
@@ -964,19 +972,19 @@ PackageManagerScreen
     updatedAt: number;
   };
   ```
-- [ ] On login: fetch `UserSettings` from cloud → merge with local MMKV (cloud wins on conflict)
-- [ ] On settings change: write to MMKV immediately (synchronous, for instant feedback) + write to cloud in background (debounced 5 seconds)
-- [ ] On logout: clear MMKV session tokens and sensitive data; keep local settings for convenience
+- [x] On login: fetch `UserSettings` from cloud → merge with local MMKV (cloud wins on conflict)
+- [x] On settings change: write to MMKV immediately (synchronous, for instant feedback) + write to cloud in background (debounced 5 seconds)
+- [x] On logout: clear MMKV session tokens and sensitive data; keep local settings for convenience
 
 #### Offline and Conflict States
-- [ ] Settings write must queue when offline (use MMKV offline queue pattern from the main roadmap)
-- [ ] On reconnect: flush the queue
-- [ ] On conflict (cloud `updatedAt` is newer than local): show "Settings were updated on another device — use cloud or keep local?"
+- [x] Settings write must queue when offline (use MMKV offline queue pattern from the main roadmap)
+- [x] On reconnect: flush the queue
+- [x] On conflict (cloud `updatedAt` is newer than local): show "Settings were updated on another device — use cloud or keep local?"
 
 #### Auth State in UI
-- [ ] Show a loading state on app startup while auth token is being validated
-- [ ] Show an offline indicator when the device has no connectivity
-- [ ] Gracefully degrade: the app must be fully usable for local editing when offline; only cloud features (engine, sync) require connectivity
+- [x] Show a loading state on app startup while auth token is being validated
+- [x] Show an offline indicator when the device has no connectivity
+- [x] Gracefully degrade: the app must be fully usable for local editing when offline; only cloud features (engine, sync) require connectivity
 
 #### Acceptance Criteria
 
@@ -1306,10 +1314,10 @@ Work in this sequence to get from 45% to a working student MVP as fast as possib
 2. ████████░░  Connect terminal to nova-engine (real WS PTY)            Phase 2.1–2.2
 3. ████████░░  Run Python and JavaScript reliably end-to-end            Phase 1.3 + 4.1–4.2
 4. ████████░░  Secure the engine (Docker, auth, limits)                 Phase 2.3  ← DO NOT SKIP
-5. ████░░░░░░  Add browser preview for HTML/CSS/JS                      Phase 3
+5. ████████░░  Add browser preview for HTML/CSS/JS                      Phase 3
 6. ████░░░░░░  npm and pip package installation                         Phase 5
-7. ████░░░░░░  Java support                                             Phase 4.4
-8. ████░░░░░░  C and C++ support                                        Phase 4.5
+7. ████████░░  Java support                                             Phase 4.4
+8. ████████░░  C and C++ support                                        Phase 4.5
 9. ████░░░░░░  Local Git (solid before remote Git)                      Phase 6
 10. ████░░░░░░ Auth audit and settings sync                              Phase 7
 11. ████░░░░░░ Tests and production deployment                           Phase 8–9
@@ -1775,13 +1783,13 @@ Use this before starting each phase to confirm the gate conditions are met.
 - [ ] Python and JavaScript vertical slices both work end-to-end
 
 #### Before Phase 4 (Language Support)
-- [ ] Phase 3 acceptance criteria all pass OR preview is explicitly deferred
-- [ ] All 6 language templates exist and are syntactically valid
-- [ ] `cm6-build` has Java and C/C++ language packages installed and bundled
+- [x] Phase 3 acceptance criteria all pass OR preview is explicitly deferred
+- [x] All 6 language templates exist and are syntactically valid
+- [x] `cm6-build` has Java and C/C++ language packages installed and bundled
 
 #### Before Phase 5 (Package Manager)
-- [ ] Phase 4 Python and JavaScript support verified
-- [ ] `nova-engine` exec API available for running npm/pip commands
+- [x] Phase 4 Python and JavaScript support verified
+- [x] `nova-engine` exec API available for running npm/pip commands
 
 #### Before Phase 6 (Git)
 - [ ] Phase 1 filesystem is fully stable — no data loss bugs

@@ -14,6 +14,8 @@ interface ProjectSwitcherModalProps {
   onClose: () => void;
   onSelectProject: (project: Project) => void;
   onCloseWorkspace: () => void;
+  onCreateProject: () => void;
+  onCloneRepository: () => void;
 }
 
 export const ProjectSwitcherModal: React.FC<ProjectSwitcherModalProps> = ({
@@ -21,6 +23,8 @@ export const ProjectSwitcherModal: React.FC<ProjectSwitcherModalProps> = ({
   onClose,
   onSelectProject,
   onCloseWorkspace,
+  onCreateProject,
+  onCloneRepository,
 }) => {
   const { recentProjects, currentProject } = useProjectStore();
 
@@ -78,17 +82,45 @@ export const ProjectSwitcherModal: React.FC<ProjectSwitcherModalProps> = ({
           )}
 
           <View style={styles.footer}>
-            <Pressable 
-              style={[styles.button, styles.closeWorkspaceBtn]} 
-              onPress={onCloseWorkspace}
-            >
-              <MaterialCommunityIcons name="close-box-outline" size={18} color={theme.colors.error} />
-              <AppText variant="bodyMd" color={theme.colors.error} style={{ marginLeft: 8 }}>
-                Close Workspace
-              </AppText>
-            </Pressable>
+            <View style={styles.leftActions}>
+              <Pressable 
+                style={[styles.button, styles.closeWorkspaceBtn]} 
+                onPress={onCloseWorkspace}
+              >
+                <MaterialCommunityIcons name="close-box-outline" size={18} color={theme.colors.error} />
+                <AppText variant="bodyMd" color={theme.colors.error} style={{ marginLeft: 6 }}>
+                  Close
+                </AppText>
+              </Pressable>
+            </View>
 
             <View style={styles.actionRow}>
+              <Pressable 
+                style={[styles.button, styles.cloneRepoBtn]} 
+                onPress={() => {
+                  onClose();
+                  onCloneRepository();
+                }}
+              >
+                <MaterialCommunityIcons name="git" size={18} color={theme.colors.primaryFixed} />
+                <AppText variant="bodyMd" color={theme.colors.primaryFixed} style={{ marginLeft: 6 }}>
+                  Clone Repo
+                </AppText>
+              </Pressable>
+
+              <Pressable 
+                style={[styles.button, styles.createProjectBtn]} 
+                onPress={() => {
+                  onClose();
+                  onCreateProject();
+                }}
+              >
+                <MaterialCommunityIcons name="plus-box-outline" size={18} color={theme.colors.primaryFixed} />
+                <AppText variant="bodyMd" color={theme.colors.primaryFixed} style={{ marginLeft: 6 }}>
+                  New Project
+                </AppText>
+              </Pressable>
+
               <Pressable style={styles.button} onPress={onClose}>
                 <AppText variant="bodyMd" color={theme.colors.onSurfaceVariant}>Cancel</AppText>
               </Pressable>
@@ -156,15 +188,34 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  leftActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   closeWorkspaceBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: theme.spacing.s3,
     backgroundColor: 'rgba(255, 107, 107, 0.1)',
   },
+  createProjectBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.s3,
+    backgroundColor: 'rgba(0, 240, 255, 0.1)',
+    marginRight: theme.spacing.s2,
+  },
+  cloneRepoBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.s3,
+    backgroundColor: 'rgba(0, 240, 255, 0.1)',
+    marginRight: theme.spacing.s2,
+  },
   actionRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
+    alignItems: 'center',
   },
   button: {
     paddingHorizontal: theme.spacing.s4,

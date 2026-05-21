@@ -9,6 +9,7 @@ export interface OpenFile {
   cursorLine: number;
   cursorCol: number;
   isBinary?: boolean; // Protect editor from parsing buffers/images
+  content?: string; // Cache current in-memory file content
 }
 
 interface EditorStore {
@@ -20,6 +21,7 @@ interface EditorStore {
   markUnsaved: (path: string) => void;
   markSaved: (path: string) => void;
   updateCursor: (path: string, line: number, col: number) => void;
+  updateContent: (path: string, content: string) => void;
   clearFiles: () => void;
 }
 
@@ -60,6 +62,9 @@ export const useEditorStore = create<EditorStore>(set => ({
   })),
   updateCursor: (path, line, col) => set(s => ({
     openFiles: s.openFiles.map(f => f.path === path ? { ...f, cursorLine: line, cursorCol: col } : f),
+  })),
+  updateContent: (path, content) => set(s => ({
+    openFiles: s.openFiles.map(f => f.path === path ? { ...f, content } : f),
   })),
   clearFiles: () => set({ openFiles: [], activeIndex: 0 }),
 }));

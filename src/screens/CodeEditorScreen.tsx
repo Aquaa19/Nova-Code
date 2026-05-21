@@ -306,9 +306,24 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
       setEditorContent('');
       return;
     }
+
+    // Check if we already have the content cached in the store
+    if (activeFile.content !== undefined) {
+      setEditorContent(activeFile.content);
+      editorRef.current?.setContent(activeFile.content);
+      if (activeFile.cursorLine && activeFile.cursorCol) {
+        setTimeout(() => {
+          editorRef.current?.setCursor?.(activeFile.cursorLine, activeFile.cursorCol);
+        }, 150);
+      }
+      return;
+    }
+
     setIsFileLoading(true);
     FileService.readFile(activeFile.path)
       .then(content => {
+        // Cache the loaded content in the store
+        useEditorStore.getState().updateContent(activeFile.path, content);
         setEditorContent(content);
         editorRef.current?.setContent(content);
         if (activeFile.cursorLine && activeFile.cursorCol) {
@@ -321,29 +336,13 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
       .finally(() => setIsFileLoading(false));
   }, [activeFile?.path, activeFile?.isBinary]);
 
-  // Unsaved Changes Guards
-  const checkUnsavedBeforeAction = useCallback((action: () => void) => {
-    if (activeFile?.unsaved && !settings.autosaveEnabled) {
-      Alert.alert(
-        'Unsaved Changes',
-        `Do you want to save the changes to ${activeFile.path.split('/').pop()}?`,
-        [
-          { text: 'Save', onPress: async () => { await handleSave(); action(); } },
-          { text: 'Discard', style: 'destructive', onPress: () => { markSaved(activeFile.path); action(); } },
-          { text: 'Cancel', style: 'cancel' }
-        ]
-      );
-    } else {
-      action();
-    }
-  }, [activeFile, settings.autosaveEnabled, handleSave, markSaved]);
-
+  // Unsaved Changes Guard and Tab Actions
   const handleTabSwitch = useCallback((index: number) => {
     if (index !== activeIndex) {
       editorRef.current?.clearErrorLine();
-      checkUnsavedBeforeAction(() => setActiveIndex(index));
+      setActiveIndex(index);
     }
-  }, [activeIndex, checkUnsavedBeforeAction, setActiveIndex]);
+  }, [activeIndex, setActiveIndex]);
 
   const handleCloseTab = useCallback((path: string) => {
     const fileToClose = openFiles.find(f => f.path === path);
@@ -353,7 +352,13 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
         `Do you want to save the changes to ${path.split('/').pop()}?`,
         [
           { text: 'Save', onPress: async () => { 
-              if (path === activeFile?.path) await handleSave(); 
+              if (path === activeFile?.path) {
+                await handleSave(); 
+              } else {
+                if (fileToClose.content !== undefined) {
+                  await FileService.writeFile(fileToClose.path, fileToClose.content);
+                }
+              }
               closeFile(path); 
             } 
           },
@@ -473,6 +478,7 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
                 onContentChange={(content) => {
                   editorRef.current?.clearErrorLine();
                   markUnsaved(activeFile.path);
+                  useEditorStore.getState().updateContent(activeFile.path, content);
                   triggerAutosave(content);
                 }}
                 onCursorChange={(line, col) => updateCursor(activeFile.path, line, col)}
@@ -547,10 +553,8 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
         onClose={() => setIsDrawerOpen(false)}
         activeFilePath={activeFile?.path}
         onFileSelect={(path) => {
-          checkUnsavedBeforeAction(() => {
-            openFileAtPath(path);
-            setIsDrawerOpen(false);
-          });
+          openFileAtPath(path);
+          setIsDrawerOpen(false);
         }}
       />
 

@@ -18,6 +18,7 @@ export interface Settings {
   gitAuthorName: string;
   gitAuthorEmail: string;
   gitPAT: string;
+  lastUpdatedAt: number; // For cloud sync conflict resolution
 }
 
 interface SettingsStore extends Settings {
@@ -38,6 +39,7 @@ const defaults: Settings = {
   gitAuthorName: '',
   gitAuthorEmail: '',
   gitPAT: '',
+  lastUpdatedAt: 0,
 };
 
 const persisted: Partial<Settings> = JSON.parse(storage.getString('settings') ?? '{}');
@@ -46,7 +48,11 @@ export const useSettingsStore = create<SettingsStore>(set => ({
   ...defaults,
   ...persisted,
   update: partial => set(s => {
-    const updated = { ...s, ...partial };
+    const updated = { 
+      ...s, 
+      ...partial,
+      lastUpdatedAt: partial.lastUpdatedAt !== undefined ? partial.lastUpdatedAt : Date.now()
+    };
     const { update, ...data } = updated;
     storage.set('settings', JSON.stringify(data));
     return updated;

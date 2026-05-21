@@ -1,10 +1,10 @@
-// src/navigation/RootNavigator.tsx
-
 import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import auth, { FirebaseAuthTypes } from '@react-native-firebase/auth';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 import { FileExplorerScreen } from '../screens/FileExplorerScreen';
 import { PackageManagerScreen } from '../screens/PackageManagerScreen';
@@ -15,6 +15,9 @@ import { AuthScreen } from '../screens/AuthScreen';
 import { EditorStack } from './EditorStack';
 import { BottomTabBar } from '../components/navigation/BottomTabBar';
 import { RootStackParamList } from './types';
+import { SyncService } from '../services/SyncService';
+import { AppText } from '../components/typography/AppText';
+import { theme } from '../theme';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator<RootStackParamList>();
@@ -68,26 +71,89 @@ function MainTabs() {
 export function RootNavigator() {
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
+  const [online, setOnline] = useState(true);
 
   useEffect(() => {
     const subscriber = auth().onAuthStateChanged((userState) => {
       setUser(userState);
       if (initializing) setInitializing(false);
     });
-    return subscriber; // unsubscribe on unmount
-  }, []);
 
-  if (initializing) return null;
+    const netSubscriber = SyncService.subscribeOnlineStatus((status) => {
+      setOnline(status);
+    });
+
+    return () => {
+      subscriber();
+      netSubscriber();
+    };
+  }, [initializing]);
+
+  if (initializing) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.colors.primaryFixed} />
+        <AppText variant="bodyMd" color={theme.colors.onSurfaceVariant} style={{ marginTop: 16 }}>
+          Syncing workspace...
+        </AppText>
+      </View>
+    );
+  }
 
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {!user ? (
-          <Stack.Screen name="Auth" component={AuthScreen} />
-        ) : (
-          <Stack.Screen name="Main" component={MainTabs} />
+      <View style={{ flex: 1 }}>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {!user ? (
+            <Stack.Screen name="Auth" component={AuthScreen} />
+          ) : (
+            <Stack.Screen name="Main" component={MainTabs} />
+          )}
+        </Stack.Navigator>
+
+        {!online && (
+          <View style={styles.offlineBanner}>
+            <MaterialCommunityIcons name="cloud-off-outline" size={14} color="#FF9800" />
+            <AppText variant="labelXs" style={styles.offlineText}>
+              Offline Mode — local changes will sync when reconnected
+            </AppText>
+          </View>
         )}
-      </Stack.Navigator>
+      </View>
     </NavigationContainer>
   );
 }
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#11131c',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  offlineBanner: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 50 : 10,
+    left: 20,
+    right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 152, 0, 0.15)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 152, 0, 0.3)',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    gap: 8,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+  },
+  offlineText: {
+    color: '#FF9800',
+    fontWeight: '500',
+  },
+});

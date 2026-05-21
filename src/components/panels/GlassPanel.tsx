@@ -24,6 +24,18 @@ export const GlassPanel: React.FC<GlassPanelProps> = ({
   const flatStyle = StyleSheet.flatten(style) as ViewStyle | undefined;
   const hasFlex = flatStyle?.flex !== undefined && flatStyle.flex > 0;
 
+  const contentStyle: ViewStyle = {};
+  if (flatStyle) {
+    if (flatStyle.flexDirection) contentStyle.flexDirection = flatStyle.flexDirection;
+    if (flatStyle.justifyContent) contentStyle.justifyContent = flatStyle.justifyContent;
+    if (flatStyle.alignItems) contentStyle.alignItems = flatStyle.alignItems;
+    if (flatStyle.flexWrap) contentStyle.flexWrap = flatStyle.flexWrap;
+    if (flatStyle.alignContent) contentStyle.alignContent = flatStyle.alignContent;
+    if (flatStyle.gap !== undefined) contentStyle.gap = flatStyle.gap;
+    if (flatStyle.rowGap !== undefined) contentStyle.rowGap = flatStyle.rowGap;
+    if (flatStyle.columnGap !== undefined) contentStyle.columnGap = flatStyle.columnGap;
+  }
+
   return (
     <View
       style={[
@@ -52,8 +64,8 @@ export const GlassPanel: React.FC<GlassPanelProps> = ({
       />
       {/* Inner glow — subtle top highlight */}
       <View style={styles.innerGlow} />
-      {/* Content — only flex when parent is flexing */}
-      <View style={[styles.content, hasFlex && { flex: 1 }]}>
+      {/* Content — only flex when parent is flexing, plus propagate flex layout direction */}
+      <View style={[styles.content, contentStyle, hasFlex && { flex: 1 }]}>
         {children}
       </View>
     </View>

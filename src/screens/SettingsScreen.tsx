@@ -11,7 +11,6 @@ import {
   TextInput
 } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import auth from '@react-native-firebase/auth';
 import { ScreenContainer } from '../components/layout/ScreenContainer';
 import { GlassPanel } from '../components/panels/GlassPanel';
 import { GlassCard } from '../components/cards/GlassCard';
@@ -19,9 +18,10 @@ import { AppText } from '../components/typography/AppText';
 import { IconButton } from '../components/buttons/IconButton';
 import { theme } from '../theme';
 import { useSettingsStore } from '../store/useSettingsStore';
+import { AuthService } from '../services/AuthService';
 
 export const SettingsScreen: React.FC = () => {
-  const user = auth().currentUser;
+  const user = AuthService.getCurrentUser();
   const settings = useSettingsStore();
 
   const handleSignOut = () => {
@@ -30,7 +30,17 @@ export const SettingsScreen: React.FC = () => {
       'Are you sure you want to sign out?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Sign Out', style: 'destructive', onPress: () => auth().signOut() },
+        { 
+          text: 'Sign Out', 
+          style: 'destructive', 
+          onPress: async () => {
+            try {
+              await AuthService.signOut();
+            } catch (e: any) {
+              Alert.alert('Error', 'Sign out failed: ' + e.message);
+            }
+          } 
+        },
       ]
     );
   };

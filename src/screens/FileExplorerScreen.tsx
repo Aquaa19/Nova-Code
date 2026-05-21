@@ -10,6 +10,7 @@ import { FileTree } from '../features/files/components/FileTree';
 
 import { FileService, PROJECTS_ROOT, FileNode } from '../services/FileService';
 import { useProjectStore, Project } from '../store/useProjectStore';
+import { useEditorStore } from '../store/useEditorStore';
 
 // Modals & Drawers
 import { ActionSheetModal, ActionItem } from '../components/modals/ActionSheetModal';
@@ -17,6 +18,7 @@ import { NewItemModal, NewItemMode } from '../components/modals/NewItemModal';
 import { NewProjectModal } from '../features/files/components/NewProjectModal';
 import { ProjectSwitcherModal } from '../features/files/components/ProjectSwitcherModal';
 import { SourceControlDrawer } from '../features/files/components/SourceControlDrawer';
+import { CloneRepositoryModal } from '../features/files/components/CloneRepositoryModal';
 
 // Services & Types
 import { ProjectService } from '../features/files/services/ProjectService';
@@ -42,9 +44,17 @@ export const FileExplorerScreen: React.FC<any> = ({ navigation }) => {
   const [newProjectModalVisible, setNewProjectModalVisible] = useState(false);
   const [projectSwitcherVisible, setProjectSwitcherVisible] = useState(false);
   const [sourceControlVisible, setSourceControlVisible] = useState(false);
+  const [cloneModalVisible, setCloneModalVisible] = useState(false);
 
   // Trigger FileTree refresh
   const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
+
+  React.useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      setRefreshTrigger(prev => prev + 1);
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   const handleFilePress = (node: FileNode) => {
     setSelectedPath(node.path);
@@ -92,6 +102,7 @@ export const FileExplorerScreen: React.FC<any> = ({ navigation }) => {
   const handleNewProjectSubmit = async (name: string, template: ProjectTemplateType) => {
     try {
       const newProject = await ProjectService.createProject(name, template);
+      useEditorStore.getState().clearFiles();
       addRecentProject(newProject);
       setCurrentProject(newProject);
       setRefreshTrigger(prev => prev + 1);
@@ -103,6 +114,7 @@ export const FileExplorerScreen: React.FC<any> = ({ navigation }) => {
 
   const handleSwitchProject = (project: Project) => {
     const updatedProject = { ...project, lastOpened: Date.now() };
+    useEditorStore.getState().clearFiles();
     addRecentProject(updatedProject);
     setCurrentProject(updatedProject);
     setProjectSwitcherVisible(false);
@@ -110,6 +122,7 @@ export const FileExplorerScreen: React.FC<any> = ({ navigation }) => {
   };
 
   const handleCloseWorkspace = () => {
+    useEditorStore.getState().clearFiles();
     setCurrentProject(null as any); 
     setProjectSwitcherVisible(false);
     setRefreshTrigger(prev => prev + 1);
@@ -247,12 +260,20 @@ export const FileExplorerScreen: React.FC<any> = ({ navigation }) => {
         onClose={() => setProjectSwitcherVisible(false)}
         onSelectProject={handleSwitchProject}
         onCloseWorkspace={handleCloseWorkspace}
+        onCreateProject={() => setNewProjectModalVisible(true)}
+        onCloneRepository={() => setCloneModalVisible(true)}
       />
 
       <SourceControlDrawer
         visible={sourceControlVisible}
         onClose={() => setSourceControlVisible(false)}
         onGitActionComplete={() => setRefreshTrigger(prev => prev + 1)}
+      />
+
+      <CloneRepositoryModal
+        visible={cloneModalVisible}
+        onClose={() => setCloneModalVisible(false)}
+        onCloneSuccess={() => setRefreshTrigger(prev => prev + 1)}
       />
     </ScreenContainer>
   );

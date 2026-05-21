@@ -6,6 +6,8 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { GlassPanel } from '../../../components/panels/GlassPanel';
 import { AppText } from '../../../components/typography/AppText';
 import { theme } from '../../../theme';
+import { useTerminalStore } from '../../../store/useTerminalStore';
+import { useSettingsStore } from '../../../store/useSettingsStore';
 
 interface InstallOverlayProps {
   visible: boolean;
@@ -13,16 +15,6 @@ interface InstallOverlayProps {
   registry: string;
   onComplete: () => void;
 }
-
-const MOCK_LOGS = [
-  "Resolving dependencies...",
-  "Fetching package metadata...",
-  "Downloading package archive...",
-  "Extracting files to project...",
-  "Linking dependencies...",
-  "Running post-install scripts...",
-  "Cleaning up cache..."
-];
 
 export const InstallOverlay: React.FC<InstallOverlayProps> = ({
   visible,
@@ -35,42 +27,94 @@ export const InstallOverlay: React.FC<InstallOverlayProps> = ({
   const progressAnim = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef<ScrollView>(null);
 
+  const { sessionId } = useTerminalStore();
+  const { engineUrl, engineAuthToken } = useSettingsStore();
+
+  const rawBuffer = useRef<string>('');
+
   useEffect(() => {
-    if (visible) {
+    if (visible && packageName) {
+      if (!sessionId) {
+        setLogs(['> Error: Sandbox session not active.', '> Please run the project first to connect the environment.']);
+        setIsDone(true);
+        setTimeout(onComplete, 2500);
+        return;
+      }
+
       setLogs([`> Initializing installation for ${packageName}...`]);
       setIsDone(false);
-      progressAnim.setValue(0);
+      progressAnim.setValue(0.1);
+      rawBuffer.current = '';
 
-      let step = 0;
-      const totalSteps = MOCK_LOGS.length;
-      
-      const interval = setInterval(() => {
-        if (step < totalSteps) {
-          setLogs(prev => [...prev, `> ${MOCK_LOGS[step]}`]);
-          
+      const httpUrl = engineUrl.replace('ws://', 'http://').replace('wss://', 'https://');
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', `${httpUrl}/sessions/${sessionId}/exec`);
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      xhr.setRequestHeader('x-auth-token', engineAuthToken);
+
+      let seenBytes = 0;
+
+      const processEvent = (eventStr: string) => {
+        const lines = eventStr.split('\n');
+        let isDoneEvent = false;
+        let dataStr = '';
+
+        for (const line of lines) {
+          if (line.startsWith('event: done')) {
+            isDoneEvent = true;
+          } else if (line.startsWith('data: ')) {
+            dataStr = line.substring(6);
+          }
+        }
+
+        if (isDoneEvent) {
+          setIsDone(true);
           Animated.timing(progressAnim, {
-            toValue: (step + 1) / totalSteps,
+            toValue: 1,
             duration: 300,
             easing: Easing.out(Easing.ease),
             useNativeDriver: false,
           }).start();
-          
-          step++;
-        } else {
-          clearInterval(interval);
-          setLogs(prev => [...prev, `> Successfully installed ${packageName}!`]);
-          setIsDone(true);
-          
-          // Auto-close after a short delay
-          setTimeout(() => {
-            onComplete();
-          }, 1500);
+          setTimeout(onComplete, 1500);
+        } else if (dataStr) {
+          try {
+            const parsed = JSON.parse(dataStr);
+            if (parsed.text) {
+              setLogs(prev => [...prev, `> ${parsed.text}`]);
+            }
+          } catch (e) {}
         }
-      }, 600);
+      };
 
-      return () => clearInterval(interval);
+      xhr.onreadystatechange = () => {
+        if (xhr.readyState === 3 || xhr.readyState === 4) {
+          const newData = xhr.responseText.substring(seenBytes);
+          seenBytes = xhr.responseText.length;
+
+          let buffer = rawBuffer.current + newData;
+          let boundary = buffer.indexOf('\n\n');
+          while (boundary !== -1) {
+            const eventStr = buffer.substring(0, boundary);
+            buffer = buffer.substring(boundary + 2);
+
+            processEvent(eventStr);
+            boundary = buffer.indexOf('\n\n');
+          }
+          rawBuffer.current = buffer;
+        }
+      };
+
+      const command = registry === 'npm'
+        ? `npm install ${packageName}`
+        : `pip3 install --target=/workspace/.python_packages ${packageName}`;
+
+      xhr.send(JSON.stringify({ command }));
+
+      return () => {
+        xhr.abort();
+      };
     }
-  }, [visible, packageName]);
+  }, [visible, packageName, sessionId, engineUrl, engineAuthToken, onComplete]);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={() => {}}>
