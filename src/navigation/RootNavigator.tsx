@@ -20,6 +20,8 @@ import { AppText } from '../components/typography/AppText';
 import { theme } from '../theme';
 import { VersionCheckService } from '../services/VersionCheckService';
 
+import { useSettingsStore } from '../store/useSettingsStore';
+
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -45,8 +47,16 @@ function MainTabs() {
           label: route.name,
           icon: getIconForRoute(route.name),
         }));
-        const activeId = state.routes[state.index].name;
+        const activeId = items[state.index].id;
         const handleTabPress = (id: string) => {
+          if (useSettingsStore.getState().hasUnsavedChanges) {
+            Alert.alert(
+              'Unsaved Changes',
+              'You have unsaved settings. Please save or discard your changes before navigating.',
+              [{ text: 'OK', style: 'default' }]
+            );
+            return;
+          }
           navigation.navigate(id);
         };
         return (

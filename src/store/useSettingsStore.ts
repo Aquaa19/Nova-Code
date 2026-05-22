@@ -23,6 +23,8 @@ export interface Settings {
 
 interface SettingsStore extends Settings {
   update: (partial: Partial<Settings>) => void;
+  hasUnsavedChanges: boolean;
+  setHasUnsavedChanges: (val: boolean) => void;
 }
 
 const defaults: Settings = {
@@ -47,13 +49,15 @@ const persisted: Partial<Settings> = JSON.parse(storage.getString('settings') ??
 export const useSettingsStore = create<SettingsStore>(set => ({
   ...defaults,
   ...persisted,
+  hasUnsavedChanges: false,
+  setHasUnsavedChanges: val => set({ hasUnsavedChanges: val }),
   update: partial => set(s => {
     const updated = { 
       ...s, 
       ...partial,
       lastUpdatedAt: partial.lastUpdatedAt !== undefined ? partial.lastUpdatedAt : Date.now()
     };
-    const { update, ...data } = updated;
+    const { update, setHasUnsavedChanges, hasUnsavedChanges, ...data } = updated;
     storage.set('settings', JSON.stringify(data));
     return updated;
   }),

@@ -24,15 +24,62 @@ export const SettingsScreen: React.FC = () => {
   const user = AuthService.getCurrentUser();
   const settings = useSettingsStore();
 
+  const [isEditing, setIsEditing] = React.useState(false);
+  const [draft, setDraft] = React.useState({
+    engineUrl: settings.engineUrl,
+    engineAuthToken: settings.engineAuthToken,
+    gitAuthorName: settings.gitAuthorName,
+    gitAuthorEmail: settings.gitAuthorEmail,
+    gitPAT: settings.gitPAT,
+  });
+  const [showAuthToken, setShowAuthToken] = React.useState(false);
+  const [showGitPAT, setShowGitPAT] = React.useState(false);
+
+  // Sync draft from settings when not editing (handles cloud sync updates)
+  React.useEffect(() => {
+    if (!isEditing) {
+      setDraft({
+        engineUrl: settings.engineUrl,
+        engineAuthToken: settings.engineAuthToken,
+        gitAuthorName: settings.gitAuthorName,
+        gitAuthorEmail: settings.gitAuthorEmail,
+        gitPAT: settings.gitPAT,
+      });
+    }
+  }, [
+    settings.engineUrl,
+    settings.engineAuthToken,
+    settings.gitAuthorName,
+    settings.gitAuthorEmail,
+    settings.gitPAT,
+    isEditing
+  ]);
+
+  const hasChanges = React.useMemo(() => {
+    return draft.engineUrl !== settings.engineUrl ||
+           draft.engineAuthToken !== settings.engineAuthToken ||
+           draft.gitAuthorName !== settings.gitAuthorName ||
+           draft.gitAuthorEmail !== settings.gitAuthorEmail ||
+           draft.gitPAT !== settings.gitPAT;
+  }, [draft, settings]);
+
+  // Keep transient store state synced so navigation blocking works
+  React.useEffect(() => {
+    settings.setHasUnsavedChanges(isEditing && hasChanges);
+    return () => {
+      settings.setHasUnsavedChanges(false);
+    };
+  }, [isEditing, hasChanges]);
+
   const { host: currentHost, port: currentPort } = React.useMemo(() => {
-    const url = settings.engineUrl || '';
+    const url = draft.engineUrl || '';
     const cleanUrl = url.replace(/^(ws:\/\/|wss:\/\/|http:\/\/|https:\/\/)/, '');
     const parts = cleanUrl.split(':');
     return {
       host: parts[0] || '',
       port: parts[1] || '3000'
     };
-  }, [settings.engineUrl]);
+  }, [draft.engineUrl]);
 
   const handleHostChange = (text: string) => {
     let formatted = text;
@@ -48,7 +95,26 @@ export const SettingsScreen: React.FC = () => {
       }
       formatted = cleaned;
     }
-    settings.update({ engineUrl: `ws://${formatted}:${currentPort}` });
+    setDraft(prev => ({ ...prev, engineUrl: `ws://${formatted}:${currentPort}` }));
+  };
+
+  const handleSavePress = () => {
+    Alert.alert(
+      'Save Settings',
+      'Are you sure you want to save these changes?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Save', 
+          onPress: () => {
+            settings.update(draft);
+            setIsEditing(false);
+            settings.setHasUnsavedChanges(false);
+            Alert.alert('Success', 'Settings saved successfully!');
+          } 
+        },
+      ]
+    );
   };
 
   const handleSignOut = () => {
@@ -72,28 +138,46 @@ export const SettingsScreen: React.FC = () => {
     );
   };
 
-  const renderGitField = (icon: string, label: string, value: string, key: keyof typeof settings, secure = false) => (
-    <GlassCard padding="s3" style={styles.gitCard}>
-      <View style={styles.gitRow}>
-        <View style={styles.iconContainer}>
-          <MaterialCommunityIcons name={icon} size={20} color={theme.colors.primaryFixed} />
+  const renderGitField = (icon: string, label: string, value: string, key: 'gitAuthorName' | 'gitAuthorEmail' | 'gitPAT', secure = false) => {
+    const isSecurePAT = secure && key === 'gitPAT';
+    return (
+      <GlassCard padding="s3" style={styles.gitCard}>
+        <View style={styles.gitRow}>
+          <View style={styles.iconContainer}>
+            <MaterialCommunityIcons name={icon} size={20} color={theme.colors.primaryFixed} />
+          </View>
+          <View style={styles.gitContent}>
+            <AppText variant="labelXs" color={theme.colors.onSurfaceVariant} style={styles.gitLabel}>{label}</AppText>
+            <View style={isSecurePAT ? styles.secureGitInputContainer : null}>
+              <TextInput
+                style={[
+                  styles.gitInput,
+                  !isEditing && { opacity: 0.6 },
+                  isSecurePAT && { flex: 1 }
+                ]}
+                value={value}
+                onChangeText={(val) => setDraft(prev => ({ ...prev, [key]: val }))}
+                placeholder={label}
+                placeholderTextColor="rgba(255,255,255,0.2)"
+                secureTextEntry={isSecurePAT ? !showGitPAT : secure}
+                autoCapitalize="none"
+                autoCorrect={false}
+                editable={isEditing}
+              />
+              {isSecurePAT && (
+                <IconButton
+                  icon={showGitPAT ? 'eye-off-outline' : 'eye-outline'}
+                  size={16}
+                  onPress={() => setShowGitPAT(prev => !prev)}
+                  style={{ paddingHorizontal: theme.spacing.s2 }}
+                />
+              )}
+            </View>
+          </View>
         </View>
-        <View style={styles.gitContent}>
-          <AppText variant="labelXs" color={theme.colors.onSurfaceVariant} style={styles.gitLabel}>{label}</AppText>
-          <TextInput
-            style={styles.gitInput}
-            value={value}
-            onChangeText={(val) => settings.update({ [key]: val })}
-            placeholder={label}
-            placeholderTextColor="rgba(255,255,255,0.2)"
-            secureTextEntry={secure}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-        </View>
-      </View>
-    </GlassCard>
-  );
+      </GlassCard>
+    );
+  };
 
   return (
     <ScreenContainer withHeader={false} backgroundVariant="search">
@@ -121,6 +205,53 @@ export const SettingsScreen: React.FC = () => {
           </View>
         </GlassPanel>
 
+        {/* ── Lock / Edit Banner ── */}
+        <GlassCard padding="s3" style={styles.controlBanner}>
+          <View style={styles.bannerRow}>
+            <View style={styles.bannerLeft}>
+              <MaterialCommunityIcons 
+                name={isEditing ? 'pencil-lock-outline' : 'shield-check-outline'} 
+                size={22} 
+                color={isEditing ? '#ffa500' : theme.colors.primaryFixed} 
+              />
+              <View style={{ marginLeft: theme.spacing.s3 }}>
+                <AppText variant="bodyMd" style={{ fontWeight: 'bold' }}>
+                  {isEditing ? 'Settings Unlocked' : 'Settings Locked'}
+                </AppText>
+                <AppText variant="labelXs" color={theme.colors.onSurfaceVariant}>
+                  {isEditing ? 'You have unsaved changes' : 'Edit to modify engine or git profile'}
+                </AppText>
+              </View>
+            </View>
+            <View style={styles.bannerRight}>
+              {!isEditing ? (
+                <Pressable style={styles.editBtn} onPress={() => setIsEditing(true)}>
+                  <AppText variant="labelXs" style={{ fontWeight: 'bold' }} color="#fff">EDIT</AppText>
+                </Pressable>
+              ) : (
+                <View style={{ flexDirection: 'row' }}>
+                  <Pressable 
+                    style={[styles.bannerBtn, styles.cancelBtn]} 
+                    onPress={() => {
+                      setIsEditing(false);
+                      settings.setHasUnsavedChanges(false);
+                    }}
+                  >
+                    <AppText variant="labelXs" style={{ fontWeight: 'bold' }} color={theme.colors.onSurfaceVariant}>CANCEL</AppText>
+                  </Pressable>
+                  <Pressable 
+                    style={[styles.bannerBtn, styles.saveBtn, !hasChanges && { opacity: 0.5 }]} 
+                    disabled={!hasChanges}
+                    onPress={handleSavePress}
+                  >
+                    <AppText variant="labelXs" style={{ fontWeight: 'bold' }} color="#000">SAVE</AppText>
+                  </Pressable>
+                </View>
+              )}
+            </View>
+          </View>
+        </GlassCard>
+
         {/* ── Execution Engine ── */}
         <View style={styles.section}>
           <AppText variant="labelXs" color={theme.colors.onSurfaceVariant} style={styles.sectionTitle}>EXECUTION ENGINE</AppText>
@@ -132,7 +263,7 @@ export const SettingsScreen: React.FC = () => {
                   <AppText variant="labelXs" style={styles.urlPrefixText}>ws://</AppText>
                 </View>
                 <TextInput
-                  style={styles.urlHostInput}
+                  style={[styles.urlHostInput, !isEditing && { opacity: 0.6 }]}
                   value={currentHost}
                   onChangeText={handleHostChange}
                   placeholder="54.146.249.216"
@@ -140,6 +271,7 @@ export const SettingsScreen: React.FC = () => {
                   keyboardType="decimal-pad"
                   autoCapitalize="none"
                   autoCorrect={false}
+                  editable={isEditing}
                 />
                 <View style={styles.urlSuffixContainer}>
                   <AppText variant="labelXs" style={styles.urlSuffixText}>{`:${currentPort}`}</AppText>
@@ -149,15 +281,24 @@ export const SettingsScreen: React.FC = () => {
             
             <View style={[styles.inputGroup, { marginTop: theme.spacing.s4 }]}>
               <AppText variant="labelXs" color={theme.colors.onSurfaceVariant} style={styles.inputLabel}>AUTH TOKEN</AppText>
-              <TextInput
-                style={styles.settingsInput}
-                value={settings.engineAuthToken}
-                onChangeText={(val) => settings.update({ engineAuthToken: val })}
-                placeholder="your-secret-token"
-                placeholderTextColor="rgba(255,255,255,0.2)"
-                secureTextEntry
-                autoCapitalize="none"
-              />
+              <View style={styles.secureInputContainer}>
+                <TextInput
+                  style={[styles.secureTextInput, !isEditing && { opacity: 0.6 }]}
+                  value={draft.engineAuthToken}
+                  onChangeText={(val) => setDraft(prev => ({ ...prev, engineAuthToken: val }))}
+                  placeholder="your-secret-token"
+                  placeholderTextColor="rgba(255,255,255,0.2)"
+                  secureTextEntry={!showAuthToken}
+                  autoCapitalize="none"
+                  editable={isEditing}
+                />
+                <IconButton
+                  icon={showAuthToken ? 'eye-off-outline' : 'eye-outline'}
+                  size={16}
+                  onPress={() => setShowAuthToken(prev => !prev)}
+                  style={styles.eyeBtn}
+                />
+              </View>
             </View>
           </GlassCard>
         </View>
@@ -165,9 +306,9 @@ export const SettingsScreen: React.FC = () => {
         {/* ── Git Profile ── */}
         <View style={styles.section}>
           <AppText variant="labelXs" color={theme.colors.onSurfaceVariant} style={styles.sectionTitle}>GIT PROFILE</AppText>
-          {renderGitField('account-outline', 'AUTHOR NAME', settings.gitAuthorName, 'gitAuthorName')}
-          {renderGitField('email-outline', 'AUTHOR EMAIL', settings.gitAuthorEmail, 'gitAuthorEmail')}
-          {renderGitField('key-outline', 'PERSONAL ACCESS TOKEN', settings.gitPAT, 'gitPAT', true)}
+          {renderGitField('account-outline', 'AUTHOR NAME', draft.gitAuthorName, 'gitAuthorName')}
+          {renderGitField('email-outline', 'AUTHOR EMAIL', draft.gitAuthorEmail, 'gitAuthorEmail')}
+          {renderGitField('key-outline', 'PERSONAL ACCESS TOKEN', draft.gitPAT, 'gitPAT', true)}
         </View>
 
         {/* ── Editor Preferences ── */}
@@ -543,5 +684,66 @@ const styles = StyleSheet.create({
   urlSuffixText: {
     color: theme.colors.onSurfaceVariant,
     opacity: 0.8,
+  },
+  controlBanner: {
+    marginBottom: theme.spacing.s6,
+    borderColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(255,255,255,0.02)',
+  },
+  bannerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  bannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  bannerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  editBtn: {
+    backgroundColor: theme.colors.primaryFixed,
+    paddingHorizontal: theme.spacing.s4,
+    paddingVertical: theme.spacing.s2,
+    borderRadius: theme.radius.xs,
+  },
+  bannerBtn: {
+    paddingHorizontal: theme.spacing.s3,
+    paddingVertical: theme.spacing.s2,
+    borderRadius: theme.radius.xs,
+    marginLeft: theme.spacing.s2,
+  },
+  cancelBtn: {
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  saveBtn: {
+    backgroundColor: '#fff',
+  },
+  secureInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    borderRadius: theme.radius.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    overflow: 'hidden',
+  },
+  secureTextInput: {
+    flex: 1,
+    paddingHorizontal: theme.spacing.s4,
+    paddingVertical: theme.spacing.s3,
+    color: theme.colors.onSurface,
+    ...theme.typography.codeSm,
+  },
+  eyeBtn: {
+    paddingHorizontal: theme.spacing.s3,
+  },
+  secureGitInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
   },
 });
