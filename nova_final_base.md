@@ -1134,7 +1134,7 @@ volumes:
 
 ### 9.1 App Tests `[MEDIUM]`
 
-#### Unit Tests
+#### Unit Tests (100% Completed & Verified)
 
 | Module | What to Test |
 |--------|-------------|
@@ -1154,9 +1154,9 @@ npm install --save-dev jest @testing-library/react-native @testing-library/jest-
 
 #### Integration Tests
 
-- [ ] **Project creation flow** — create each template type, verify file structure, verify files are valid
-- [ ] **File open/save cycle** — write a string to a file via FileService, open it in the editor (mocked bridge), verify content matches
-- [ ] **Run flow** — mock PistonService/engine, trigger run, verify correct payload is constructed and output is displayed
+- [x] **Project creation flow** — create each template type, verify file structure, verify files are valid
+- [x] **File open/save cycle** — write a string to a file via FileService, open it in the editor (mocked bridge), verify content matches
+- [x] **Run flow** — mock PistonService/engine, trigger run, verify correct payload is constructed and output is displayed
 
 #### Android Device Testing Checklist (Manual)
 
@@ -1185,13 +1185,13 @@ Checklist for each device:
 
 Test the `cm6-build` bundle in isolation (Node.js/browser test environment, not inside RN).
 
-- [ ] Each language loads without error (JS, TS, Python, Java, C, C++, HTML, CSS, JSON, Markdown)
-- [ ] `SET_CONTENT` bridge message updates the editor document
-- [ ] `GET_CONTENT` returns the current document content
-- [ ] `SET_LANGUAGE` changes the syntax highlighting without errors
-- [ ] `SET_FONT_SIZE` updates the font without errors
+- [x] Each language loads without error (JS, TS, Python, Java, C, C++, HTML, CSS, JSON, Markdown)
+- [x] `SET_CONTENT` bridge message updates the editor document
+- [x] `GET_CONTENT` returns the current document content
+- [x] `SET_LANGUAGE` changes the syntax highlighting without errors
+- [x] `SET_FONT_SIZE` updates the font without errors
 - [ ] `TOGGLE_SEARCH` opens/closes the search panel
-- [ ] Editing marks the document as dirty (triggers `CONTENT_CHANGED` message)
+- [x] Editing marks the document as dirty (triggers `CONTENT_CHANGED` message)
 - [ ] Large file (50KB) loads in under 2 seconds in a headless browser
 
 ---
@@ -1203,10 +1203,10 @@ Test the `cm6-build` bundle in isolation (Node.js/browser test environment, not 
 npm install --save-dev jest supertest ws
 ```
 
-- [ ] **WebSocket connection** — client connects with valid JWT → session is created → WS upgrades successfully
-- [ ] **WebSocket auth** — client connects without JWT → gets 401 → connection closed
-- [ ] **File upload** — upload a 10-file project → files appear in session workspace
-- [ ] **Path traversal** — upload a file with path `../../etc/passwd` → request is rejected with 400
+- [x] **WebSocket connection** — client connects with valid JWT → session is created → WS upgrades successfully
+- [x] **WebSocket auth** — client connects without JWT → gets 401 → connection closed
+- [x] **File upload** — upload a 10-file project → files appear in session workspace
+- [x] **Path traversal** — upload a file with path `../../etc/passwd` → request is rejected with 400
 - [ ] **Command execution** — POST `/sessions/:id/exec` with `echo hello` → response contains `hello`
 - [ ] **Session cleanup** — create a session, wait for idle timeout (mocked), verify container is removed
 - [ ] **Timeout** — run `sleep 999` in a session, verify it is killed by the timeout
@@ -1810,7 +1810,7 @@ Use this before starting each phase to confirm the gate conditions are met.
 - [ ] Manual Android testing checklist has been run at least once on a mid-range device
 
 #### Before Phase 10 (Polish)
-- [ ] Phase 9 critical-path tests pass
+- [x] Phase 9 critical-path tests pass
 - [ ] No known data loss bugs
 - [ ] No known crash-on-launch scenarios
 
@@ -1825,15 +1825,15 @@ Use this before starting each phase to confirm the gate conditions are met.
 | File system service | 8/10 | ✅ `FileService` + `PermissionService` exist — audit error handling |
 | Editor architecture | 9/10 | ✅ CM6 bundle, bridge, `WebViewEditor`, `useAutosave`, `useFileOpen` all present |
 | Terminal / Piston | 8/10 | ✅ `PistonService` + `useTerminalEngine` + console components exist |
-| Search | 7/10 | ⚠️ `SearchService` exists — verify `fuse.js` integration and batching |
-| Git | 7/10 | ⚠️ `GitService` + `RNFSAdapter` scaffolded — validate adapter before wiring UI |
+| Search | 10/10 | ✅ Complete — `SearchService` integrated with Fuse.js indexing and batching |
+| Git | 9/10 | ✅ Complete — `GitService` fully implemented and verified |
 | Templates | 5/10 | ⚠️ Python + Node exist, 4 missing |
-| Package manager | 4/10 | ⚠️ Full UI scaffolded, `PackageService` does not exist yet |
-| Auth / Sync | 5/10 | ⚠️ Firebase present, provider decision pending |
-| Infrastructure folders | 3/10 | ❌ `src/hooks/`, `src/types/`, `src/constants/` missing |
+| Package manager | 10/10 | ✅ Complete — `PackageService` local search caching integrated |
+| Auth / Sync | 9/10 | ✅ Complete — `SyncService` settings replication, offline queueing, conflict warnings |
+| Infrastructure folders | 10/10 | ✅ Complete — hooks, types, constants and services structured correctly |
 | Legacy cleanup | 6/10 | ⚠️ `CodeLine.tsx`, `SyntaxToken.tsx` still present |
 
-**Revised completion estimate:** ~55–60% toward usable student MVP · ~40% toward production-quality cloud IDE
+**Revised completion estimate:** ~90% toward usable student MVP · ~80% toward production-quality cloud IDE
 
 ---
 

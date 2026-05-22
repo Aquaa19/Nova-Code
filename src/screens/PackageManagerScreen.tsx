@@ -17,52 +17,12 @@ import { PackageTabs } from '../features/packages/components/PackageTabs';
 import { PackageFeed } from '../features/packages/components/PackageFeed';
 import { PackageData } from '../features/packages/components/PackageCard';
 import { InstallOverlay } from '../features/packages/components/InstallOverlay';
+import { PackageService } from '../features/packages/services/PackageService';
 
 const TABS = [
   { id: 'explore', label: 'Explore' },
   { id: 'installed', label: 'Installed' },
 ];
-
-const CACHE_KEY_PREFIX = 'pkg_search_';
-
-const getCachedSearch = (ecosystem: string, query: string): PackageData[] | null => {
-  try {
-    const raw = storage.getString(`${CACHE_KEY_PREFIX}${ecosystem}_${query}`);
-    if (!raw) return null;
-    const { timestamp, results } = JSON.parse(raw);
-    if (Date.now() - timestamp < 3600000) { // 1 hour expiration
-      return results;
-    }
-    // Expired
-    storage.remove(`${CACHE_KEY_PREFIX}${ecosystem}_${query}`);
-    return null;
-  } catch (e) {
-    return null;
-  }
-};
-
-const cacheSearch = (ecosystem: string, query: string, results: PackageData[]) => {
-  try {
-    const searchKeysRaw = storage.getString(`${CACHE_KEY_PREFIX}${ecosystem}_keys`);
-    let keys: string[] = searchKeysRaw ? JSON.parse(searchKeysRaw) : [];
-    
-    const newKey = `${CACHE_KEY_PREFIX}${ecosystem}_${query}`;
-    if (!keys.includes(newKey)) {
-      keys.push(newKey);
-    }
-    
-    // Evict oldest if limit of 20 searches is reached
-    if (keys.length > 20) {
-      const oldestKey = keys.shift();
-      if (oldestKey) storage.remove(oldestKey);
-    }
-    
-    storage.set(`${CACHE_KEY_PREFIX}${ecosystem}_keys`, JSON.stringify(keys));
-    storage.set(newKey, JSON.stringify({ timestamp: Date.now(), results }));
-  } catch (e) {
-    console.warn('Failed to cache search in MMKV:', e);
-  }
-};
 
 export const PackageManagerScreen: React.FC = () => {
   const { currentProject } = useProjectStore();
@@ -93,7 +53,7 @@ export const PackageManagerScreen: React.FC = () => {
       return;
     }
 
-    const cached = getCachedSearch(activeRegistry, searchQuery);
+    const cached = PackageService.getCachedSearch(activeRegistry, searchQuery);
     if (cached) {
       setSearchResults(cached);
       return;
@@ -128,7 +88,7 @@ export const PackageManagerScreen: React.FC = () => {
 
         setSearchResults(results);
         if (results.length > 0) {
-          cacheSearch(activeRegistry, searchQuery, results);
+          PackageService.cacheSearch(activeRegistry, searchQuery, results);
         }
       } catch (e) {
         console.warn('Package search failed:', e);

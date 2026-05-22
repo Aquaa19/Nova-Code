@@ -8,7 +8,7 @@ import { RUN_CONFIGS } from '../../../constants/runCommands';
 import { OpenFile } from '../../../store/useEditorStore';
 import { WebViewEditorHandle } from '../../editor/components/WebViewEditor';
 
-function cleanRawOutput(raw: string): string {
+export function cleanRawOutput(raw: string): string {
   return raw
     .replace(/\r/g, '')
     .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '')
@@ -18,8 +18,10 @@ function cleanRawOutput(raw: string): string {
     .replace(/\x1b/g, '');
 }
 
-function detectInteractiveNeeded(content: string, language: string): boolean {
-  const normalized = content.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, ''); // strip comments
+export function detectInteractiveNeeded(content: string, language: string): boolean {
+  const normalized = content
+    .replace(/\/\/.*|\/\*[\s\S]*?\*\//g, '') // strip C-style comments
+    .replace(/#.*/g, ''); // strip python/shell comments
   if (language === 'python') {
     return /\binput\s*\(/.test(normalized);
   }
@@ -32,7 +34,7 @@ function detectInteractiveNeeded(content: string, language: string): boolean {
   return false;
 }
 
-function generateHint(output: string): string | null {
+export function generateHint(output: string): string | null {
   if (output.includes('NameError:')) {
     return '💡 Hint: You are using a variable or function that hasn\'t been defined yet. Check for spelling mistakes or missing declarations!';
   }

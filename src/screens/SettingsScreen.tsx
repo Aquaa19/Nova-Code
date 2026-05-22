@@ -226,7 +226,7 @@ export const SettingsScreen: React.FC = () => {
             <View style={styles.bannerRight}>
               {!isEditing ? (
                 <Pressable style={styles.editBtn} onPress={() => setIsEditing(true)}>
-                  <AppText variant="labelXs" style={{ fontWeight: 'bold' }} color="#fff">EDIT</AppText>
+                  <AppText variant="labelXs" style={{ fontWeight: 'bold' }} color="#000">EDIT</AppText>
                 </Pressable>
               ) : (
                 <View style={{ flexDirection: 'row' }}>
