@@ -24,6 +24,33 @@ export const SettingsScreen: React.FC = () => {
   const user = AuthService.getCurrentUser();
   const settings = useSettingsStore();
 
+  const { host: currentHost, port: currentPort } = React.useMemo(() => {
+    const url = settings.engineUrl || '';
+    const cleanUrl = url.replace(/^(ws:\/\/|wss:\/\/|http:\/\/|https:\/\/)/, '');
+    const parts = cleanUrl.split(':');
+    return {
+      host: parts[0] || '',
+      port: parts[1] || '3000'
+    };
+  }, [settings.engineUrl]);
+
+  const handleHostChange = (text: string) => {
+    let formatted = text;
+    // Auto placement of dots if they enter numeric IP parts
+    const isIP = /^[0-9.]*$/.test(text);
+    if (isIP) {
+      let cleaned = text.replace(/[^0-9.]/g, '');
+      const parts = cleaned.split('.');
+      
+      const lastPart = parts[parts.length - 1];
+      if (lastPart && lastPart.length === 3 && parts.length < 4 && !text.endsWith('.')) {
+        cleaned = cleaned + '.';
+      }
+      formatted = cleaned;
+    }
+    settings.update({ engineUrl: `ws://${formatted}:${currentPort}` });
+  };
+
   const handleSignOut = () => {
     Alert.alert(
       'Sign Out',
@@ -99,16 +126,25 @@ export const SettingsScreen: React.FC = () => {
           <AppText variant="labelXs" color={theme.colors.onSurfaceVariant} style={styles.sectionTitle}>EXECUTION ENGINE</AppText>
           <GlassCard padding="s4" style={styles.engineCard}>
             <View style={styles.inputGroup}>
-              <AppText variant="labelXs" color={theme.colors.onSurfaceVariant} style={styles.inputLabel}>ENGINE URL (WS)</AppText>
-              <TextInput
-                style={styles.settingsInput}
-                value={settings.engineUrl}
-                onChangeText={(val) => settings.update({ engineUrl: val })}
-                placeholder="ws://192.168.1.100:3000"
-                placeholderTextColor="rgba(255,255,255,0.2)"
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
+              <AppText variant="labelXs" color={theme.colors.onSurfaceVariant} style={styles.inputLabel}>ENGINE HOST IP</AppText>
+              <View style={styles.urlInputContainer}>
+                <View style={styles.urlPrefixContainer}>
+                  <AppText variant="labelXs" style={styles.urlPrefixText}>ws://</AppText>
+                </View>
+                <TextInput
+                  style={styles.urlHostInput}
+                  value={currentHost}
+                  onChangeText={handleHostChange}
+                  placeholder="54.146.249.216"
+                  placeholderTextColor="rgba(255,255,255,0.2)"
+                  keyboardType="decimal-pad"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                <View style={styles.urlSuffixContainer}>
+                  <AppText variant="labelXs" style={styles.urlSuffixText}>{`:${currentPort}`}</AppText>
+                </View>
+              </View>
             </View>
             
             <View style={[styles.inputGroup, { marginTop: theme.spacing.s4 }]}>
@@ -469,5 +505,43 @@ const styles = StyleSheet.create({
   versionText: {
     opacity: 0.2,
     letterSpacing: 3,
+  },
+  urlInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    borderRadius: theme.radius.sm,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    overflow: 'hidden',
+  },
+  urlPrefixContainer: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    paddingHorizontal: theme.spacing.s3,
+    paddingVertical: theme.spacing.s3,
+    borderRightWidth: 1,
+    borderRightColor: 'rgba(255,255,255,0.08)',
+  },
+  urlPrefixText: {
+    color: theme.colors.primaryFixed,
+    fontWeight: 'bold',
+  },
+  urlHostInput: {
+    flex: 1,
+    paddingHorizontal: theme.spacing.s3,
+    paddingVertical: theme.spacing.s3,
+    color: theme.colors.onSurface,
+    ...theme.typography.codeSm,
+  },
+  urlSuffixContainer: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    paddingHorizontal: theme.spacing.s3,
+    paddingVertical: theme.spacing.s3,
+    borderLeftWidth: 1,
+    borderLeftColor: 'rgba(255,255,255,0.08)',
+  },
+  urlSuffixText: {
+    color: theme.colors.onSurfaceVariant,
+    opacity: 0.8,
   },
 });
