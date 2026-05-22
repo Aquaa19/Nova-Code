@@ -1076,7 +1076,7 @@ volumes:
 ### Required Work
 
 #### Health and Observability
-- [ ] `GET /health` endpoint returns:
+- [x] `GET /health` endpoint returns:
   ```json
   {
     "status": "ok",
@@ -1086,8 +1086,8 @@ volumes:
     "version": "1.2.0"
   }
   ```
-- [ ] **Structured logging** — every log line is a JSON object with: `timestamp`, `level`, `event`, `userId` (if applicable), `sessionId` (if applicable), `durationMs`, `error`
-- [ ] **Metrics** (Prometheus format at `/metrics`):
+- [x] **Structured logging** — every log line is a JSON object with: `timestamp`, `level`, `event`, `userId` (if applicable), `sessionId` (if applicable), `durationMs`, `error`
+- [x] **Metrics** (Prometheus format at `/metrics`):
   - `nova_sessions_active` gauge
   - `nova_sessions_total` counter
   - `nova_command_duration_ms` histogram
@@ -1096,19 +1096,19 @@ volumes:
   - `nova_rate_limit_hits_total` counter
 
 #### Reliability
-- [ ] **Graceful shutdown** — on `SIGTERM`: stop accepting new connections, wait for active commands to complete (max 30 seconds), then exit
-- [ ] **Versioned API** — add `X-Nova-Engine-Version` header to all responses; app checks this on startup and shows a warning if versions are incompatible
-- [ ] **Database migrations** — use a migration tool (e.g., Flyway, golang-migrate) so schema changes are applied cleanly
+- [x] **Graceful shutdown** — on `SIGTERM`: stop accepting new connections, wait for active commands to complete (max 30 seconds), then exit
+- [x] **Versioned API** — add `X-Nova-Engine-Version` header to all responses; app checks this on startup and shows a warning if versions are incompatible
+- [x] **Database migrations** — use a migration tool (e.g., Flyway, golang-migrate) so schema changes are applied cleanly
 
 #### Deployment
-- [ ] `Dockerfile` for `nova-engine` — multi-stage build, non-root user, minimal image
-- [ ] `docker-compose.prod.yml` for production (with proper secrets management)
-- [ ] `README.md` in `nova-engine` covering: prerequisites, environment variable reference, deployment steps, upgrade procedure
+- [x] `Dockerfile` for `nova-engine` — multi-stage build, non-root user, minimal image
+- [x] `docker-compose.prod.yml` for production (with proper secrets management)
+- [x] `README.md` in `nova-engine` covering: prerequisites, environment variable reference, deployment steps, upgrade procedure
 
 #### Backup and Cleanup
-- [ ] Nightly cleanup job: remove Docker containers for sessions that have been idle for >24 hours
-- [ ] Database backup: daily PostgreSQL dump to object storage (S3/GCS)
-- [ ] Disk cleanup: remove workspace files for expired sessions
+- [x] Nightly cleanup job: remove Docker containers for sessions that have been idle for >24 hours
+- [x] Database backup: daily PostgreSQL dump to object storage (S3/GCS)
+- [x] Disk cleanup: remove workspace files for expired sessions
 
 #### Acceptance Criteria
 

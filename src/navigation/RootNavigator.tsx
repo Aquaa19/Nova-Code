@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { View, StyleSheet, ActivityIndicator, Platform, Alert } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
@@ -18,6 +18,7 @@ import { RootStackParamList } from './types';
 import { SyncService } from '../services/SyncService';
 import { AppText } from '../components/typography/AppText';
 import { theme } from '../theme';
+import { VersionCheckService } from '../services/VersionCheckService';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator<RootStackParamList>();
@@ -77,6 +78,17 @@ export function RootNavigator() {
     const subscriber = auth().onAuthStateChanged((userState) => {
       setUser(userState);
       if (initializing) setInitializing(false);
+
+      if (userState) {
+        VersionCheckService.checkCompatibility().then((status) => {
+          if (!status.compatible) {
+            Alert.alert(
+              'Engine Incompatible',
+              `Warning: The compiler engine version (${status.engineVersion}) is incompatible with your Nova Code app version (${status.clientVersion}). Some features may not work as expected.`
+            );
+          }
+        });
+      }
     });
 
     const netSubscriber = SyncService.subscribeOnlineStatus((status) => {
