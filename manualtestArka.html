@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nova Code — Device Test Runner Dashboard (Arka)</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* CSS Variables for Premium Design Tokens */
+    :root {
+      --bg-main: #080C14;
+      --bg-card: rgba(17, 24, 39, 0.7);
+      --bg-card-hover: rgba(31, 41, 55, 0.8);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-main: #F9FAFB;
+      --text-muted: #9CA3AF;
+      --accent-cyan: #06B6D4;
+      --accent-purple: #8B5CF6;
+      --accent-green: #10B981;
+      --accent-yellow: #F59E0B;
+      --accent-red: #EF4444;
+      --gradient-accent: linear-gradient(135deg, #06B6D4 0%, #8B5CF6 100%);
+      --shadow-premium: 0 10px 40px 0 rgba(0, 0, 0, 0.5);
+      --radius-lg: 16px;
+      --radius-sm: 8px;
+    }
+
+    /* Core Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.5;
+      padding: 30px;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(6, 182, 212, 0.1) 0px, transparent 40%),
+        radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.1) 0px, transparent 40%);
+    }
+
+    header {
+      max-width: 1600px;
+      margin: 0 auto 24px auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 20px;
+    }
+
+    .header-text h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: var(--gradient-accent);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+
+    .header-text p {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    /* Control Bar & Actions */
+    .control-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .select-scope {
+      background: rgba(17, 24, 39, 0.9);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      outline: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .btn {
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--gradient-accent);
+      color: white;
+      box-shadow: 0 4px 15px rgba(6, 182, 212, 0.25);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(6, 182, 212, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-1px);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.12);
+      color: var(--accent-red);
+      border: 1px solid rgba(239, 68, 68, 0.18);
+    }
+
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.2);
+      transform: translateY(-1px);
+    }
+
+    /* Main Grid Layout */
+    .app-container {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 24px;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    /* Sidebar Devices Navigator */
+    .sidebar {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 150px);
+      box-shadow: var(--shadow-premium);
+      backdrop-filter: blur(16px);
+    }
+
+    .search-box {
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .search-input {
+      width: 100%;
+      background: rgba(10, 15, 30, 0.8);
+      border: 1px solid var(--border-color);
+      padding: 11px 14px;
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      font-size: 0.9rem;
+      outline: none;
+      transition: all 0.3s;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 10px rgba(6, 182, 212, 0.15);
+    }
+
+    .stats-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stats-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .stats-value {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+
+    .device-list {
+      overflow-y: auto;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding-right: 4px;
+    }
+
+    /* Scrollbar Style */
+    .device-list::-webkit-scrollbar {
+      width: 6px;
+    }
+    .device-list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .device-list::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+    }
+    .device-list::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .device-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+    }
+
+    .device-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .device-item.active {
+      background: rgba(6, 182, 212, 0.08);
+      border-color: var(--accent-cyan);
+    }
+
+    .device-item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      overflow: hidden;
+      margin-right: 8px;
+    }
+
+    .device-item-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .device-item-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .device-item-progress {
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.06);
+      padding: 3px 7px;
+      border-radius: 12px;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .device-item.active .device-item-progress {
+      background: rgba(6, 182, 212, 0.2);
+      color: var(--accent-cyan);
+    }
+
+    /* Main Workspace Panel */
+    .workspace {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-premium);
+      backdrop-filter: blur(16px);
+      overflow-y: auto;
+      height: calc(100vh - 150px);
+    }
+
+    .panel-header {
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .panel-meta-chips {
+      display: flex;
+      gap: 8px;
+    }
+
+    .meta-chip {
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+    }
+
+    .meta-chip-cyan { background: rgba(6, 182, 212, 0.1); border-color: rgba(6, 182, 212, 0.2); color: var(--accent-cyan); }
+    .meta-chip-purple { background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.2); color: var(--accent-purple); }
+
+    /* Metadata Input Fields */
+    .metadata-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+      background: rgba(255, 255, 255, 0.015);
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .form-group input, .form-group select {
+      background: rgba(10, 15, 26, 0.8);
+      border: 1px solid var(--border-color);
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.88rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .form-group input:focus, .form-group select:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    /* Verification Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      font-family: 'Outfit', sans-serif;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .row-header {
+      background: rgba(255, 255, 255, 0.025);
+      font-weight: 700;
+      color: var(--accent-cyan);
+      font-family: 'Outfit', sans-serif;
+    }
+
+    /* Checkbox Styles */
+    .checkbox-cell {
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .custom-chk {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--text-muted);
+      border-radius: 5px;
+      cursor: pointer;
+      display: inline-grid;
+      place-content: center;
+      transition: all 0.2s;
+      outline: none;
+      background: transparent;
+    }
+
+    .custom-chk:checked {
+      border-color: var(--accent-green);
+      background-color: var(--accent-green);
+    }
+
+    .custom-chk:checked::before {
+      content: "";
+      width: 9px;
+      height: 5px;
+      border-left: 2.2px solid white;
+      border-bottom: 2.2px solid white;
+      transform: rotate(-45deg) translate(0.5px, -0.5px);
+    }
+
+    .notes-input {
+      width: 100%;
+      background: rgba(10, 15, 26, 0.4);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .notes-input:focus {
+      border-color: var(--accent-purple);
+      background: rgba(10, 15, 26, 0.8);
+    }
+
+    /* Large Observation Logs box */
+    .logs-box {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .logs-box label {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 600;
+      font-size: 1.05rem;
+      color: var(--text-main);
+    }
+
+    .logs-box textarea {
+      width: 100%;
+      height: 100px;
+      background: rgba(10, 15, 26, 0.8);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      resize: vertical;
+      transition: border-color 0.2s;
+    }
+
+    .logs-box textarea:focus {
+      border-color: var(--accent-cyan);
+    }
+
+    /* Hidden Print Containers */
+    #print-container {
+      display: none;
+    }
+
+    /* Print styling rules */
+    @media print {
+      body {
+        background: white !important;
+        color: black !important;
+        padding: 0 !important;
+        font-size: 10pt !important;
+      }
+      
+      header, .no-print, .app-container {
+        display: none !important;
+      }
+
+      #print-container {
+        display: block !important;
+        color: black !important;
+      }
+
+      .print-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 24pt;
+        text-align: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid black;
+        padding-bottom: 10px;
+      }
+
+      .print-device-section {
+        page-break-after: always;
+        margin-bottom: 30px;
+      }
+
+      .print-device-section:last-child {
+        page-break-after: avoid;
+      }
+
+      .print-device-header {
+        font-family: 'Outfit', sans-serif;
+        font-size: 16pt;
+        border-bottom: 1px solid #cbd5e1;
+        padding-bottom: 6px;
+        margin-bottom: 16px;
+      }
+
+      .print-device-meta {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        padding: 10px;
+        margin-bottom: 20px;
+        font-size: 9pt;
+      }
+
+      .print-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
+
+      .print-table th, .print-table td {
+        border: 1px solid #cbd5e1;
+        padding: 8px;
+        font-size: 8.5pt;
+        text-align: left;
+      }
+
+      .print-table th {
+        background: #f1f5f9;
+        font-weight: bold;
+      }
+
+      .print-table .row-header {
+        background: #f8fafc;
+        font-weight: bold;
+      }
+
+      .print-chk-box {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border: 1px solid black;
+        text-align: center;
+        line-height: 12px;
+        font-size: 8pt;
+        font-weight: bold;
+      }
+
+      .print-notes {
+        font-style: italic;
+        color: #334155;
+      }
+
+      .print-logs {
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        padding: 12px;
+        font-size: 9pt;
+        margin-top: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-text">
+      <h1>Nova Code — Device Test Runner Dashboard (Arka)</h1>
+      <p>Systematic manual verification client log for testing the IDE workspace across various Android dimensions and architectures.</p>
+    </div>
+    
+    <div class="control-actions no-print">
+      <select id="print-scope" class="select-scope">
+        <option value="active">Scope: Active Device Only</option>
+        <option value="tested" selected>Scope: All Tested Devices</option>
+        <option value="all">Scope: All 17 Devices</option>
+      </select>
+      <button class="btn btn-primary" onclick="exportData()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Download PDF & CSV
+      </button>
+      <button class="btn btn-secondary" onclick="resetForm()">
+        Reset Forms
+      </button>
+    </div>
+  </header>
+
+  <!-- Application Main Container Grid -->
+  <div class="app-container no-print">
+    
+    <!-- Sidebar Explorer -->
+    <div class="sidebar">
+      <div class="search-box">
+        <input type="text" id="search-input" class="search-input" placeholder="🔍 Search emulators..." oninput="handleSearch()">
+      </div>
+      
+      <div class="stats-card">
+        <div style="display:flex; flex-direction:column;">
+          <span class="stats-title">My Progress</span>
+          <span style="font-size:0.75rem; color:var(--text-muted);" id="stats-completion-text">0 / 17 Tested</span>
+        </div>
+        <div class="stats-value" id="stats-pct">0%</div>
+      </div>
+      
+      <div class="device-list" id="device-list-container">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Active Workspace Panel -->
+    <div class="workspace" id="workspace-container">
+      <!-- Rendered dynamically -->
+    </div>
+
+  </div>
+
+  <!-- Dynamic Print Container for window.print() -->
+  <div id="print-container"></div>
+
+  <script>
+    // Exact Test Checklist from nova_final_base.md
+    const checklistItems = [
+      { section: "1. App Launch & Styling", isHeader: true },
+      { id: "launch_speed", desc: "Launch Speed", details: "App boots to Home screen in under 3 seconds." },
+      { id: "theme_render", desc: "Theme Rendering", details: "Glassmorphic, Light, and Dark themes render without visual bugs." },
+      { id: "safe_area", desc: "Safe Area & Notches", details: "UI respects status bar, camera punch-holes, and system nav bars." },
+      { id: "touch_target", desc: "Touch Target Size", details: "Main buttons and tab bars are easy to tap (min 44x44dp targets)." },
+      
+      { section: "2. Project & File System", isHeader: true },
+      { id: "template_setup", desc: "Template Instantiation", details: "All templates (Python, JS, HTML, Java, C, C++) create files correctly." },
+      { id: "folder_nav", desc: "Folder Tree Navigation", details: "Explorer renders nested directories without lag or overflow." },
+      { id: "file_crud", desc: "File CRUD Operations", details: "Creating, renaming, and deleting files/folders updates immediately." },
+      { id: "error_modal", desc: "Error Toast/Modal", details: "Invalid names (e.g. using '\\0' or '/') show helpful error messages." },
+      
+      { section: "3. Code Editor (CM6 WebView)", isHeader: true },
+      { id: "editor_load", desc: "Editor Load Time", details: "WebView initializes and loads a 100-line file in < 2 seconds." },
+      { id: "typing_perf", desc: "Typing Performance", details: "Continuous typing feels instant with zero keyboard lag." },
+      { id: "syntax_highlight", desc: "Syntax Highlighting", details: "Correct colors applied instantly when switching between languages." },
+      { id: "undo_redo", desc: "Undo / Redo", details: "State changes correctly when triggering undo/redo." },
+      { id: "large_file_guard", desc: "Large File Guard", details: "Files > 50KB show a loading spinner. Files > 500KB trigger a warning." },
+      { id: "binary_block", desc: "Binary File Block", details: "Opening binary files (e.g. '.png') is blocked; placeholder displays." },
+      
+      { section: "4. Keyboard Accessory Bar", isHeader: true },
+      { id: "bar_position", desc: "Bar Positioning", details: "Accessory bar stays glued to the top of the soft keyboard when open." },
+      { id: "input_inject", desc: "Input Injection", details: "Tapping punctuation/operators inserts them instantly at cursor." },
+      { id: "lang_comments", desc: "Language Comments", details: "Tapping comment button inserts '#' or '//' depending on active file." },
+      { id: "tab_spaces", desc: "Tab Space Insertion", details: "Tapping Tab inserts correct settings-defined spaces (e.g. 2 or 4)." },
+      
+      { section: "5. WS Terminal & PTY", isHeader: true },
+      { id: "ws_connect", desc: "WS Connection", details: "Connects to ws://10.0.2.2:3000 session." },
+      { id: "terminal_fit", desc: "Terminal Fit", details: "xterm.js scales perfectly to fill the panel without horizontal clip." },
+      { id: "interactive_stdin", desc: "Interactive Stdin", details: "Typing inside the terminal triggers response in interactive shell." },
+      { id: "signal_keys", desc: "Signal Keys (Ctrl+C)", details: "Keyboard helper shortcuts (Ctrl+C, Ctrl+D) terminate active processes." },
+      { id: "reconnect_banner", desc: "Reconnect Banner", details: "Disconnecting/offline modes trigger a visible reconnect toast/button." },
+      
+      { section: "6. Browser Preview", isHeader: true },
+      { id: "static_preview", desc: "Static HTML Preview", details: "Running HTML project launches browser preview pointing to index.html." },
+      { id: "live_reload", desc: "Live Reload", details: "Modifying HTML/CSS and saving triggers reload in < 2 seconds." },
+      { id: "scroll_preserve", desc: "Scroll Preservation", details: "Reloading preserves the vertical scroll position in the preview." },
+      { id: "console_forwarding", desc: "Console Forwarding", details: "JavaScript console errors in preview are redirected to debug drawer." },
+      
+      { section: "7. Package Manager", isHeader: true },
+      { id: "pkg_search", desc: "Package Search", details: "Searching npm/pip queries registry and outputs result cards." },
+      { id: "exec_stream_logs", desc: "Exec Log Streams", details: "Installing package shows real-time progress logs in progress card." },
+      { id: "disk_sync", desc: "Disk Sync", details: "Package updates are written to package.json or requirements.txt." },
+      
+      { section: "8. Git Integration", isHeader: true },
+      { id: "git_crud", desc: "Local Git CRUD", details: "Git init, status check, adding files, and committing work locally." },
+      { id: "git_history", desc: "Diff & History", details: "Commit history lists and changes render correctly in Git tab." },
+      
+      { section: "9. Interruption & Lifecycle", isHeader: true },
+      { id: "app_background", desc: "App Backgrounding", details: "Leaving app to Home and returning restores active file & state." },
+      { id: "phone_call", desc: "Phone Call Simulation", details: "Simulating incoming call overlay doesn't crash WebView or drop state." },
+      { id: "process_kill", desc: "OS Process Termination", details: "Running adb shell am kill com.novacode recovers state cleanly." },
+      { id: "unsaved_guard", desc: "Unsaved Changes Guard", details: "Closing a modified file or app triggers 'Save / Discard / Cancel'." }
+    ];
+
+    const checklistItemCount = checklistItems.filter(i => !i.isHeader).length;
+
+    // Arka's List (Resizable, Large, Foldable, Tablet, Desktop)
+    const devices = [
+      { name: "Resizable (Experimental)", model: "Resizable AVD", size: "Large", ratio: "1080x2400", density: "420 dpi", os: "Android API 34+", env: "Emulator" },
+      { name: "Pixel 10 Pro XL", model: "Pixel 10 Pro XL AVD", size: "Large", ratio: "1344x2992", density: "480 dpi", os: "Android API 36+", env: "Emulator" },
+      { name: "Pixel 10 Pro Fold", model: "Pixel 10 Pro Fold AVD", size: "Tablet / Foldable", ratio: "2076x2152", density: "390 dpi", os: "Android API 36+", env: "Emulator" },
+      { name: "Pixel 10 Pro", model: "Pixel 10 Pro AVD", size: "Large", ratio: "1280x2856", density: "480 dpi", os: "Android API 36+", env: "Emulator" },
+      { name: "Pixel 9 Pro XL", model: "Pixel 9 Pro XL AVD", size: "Large", ratio: "1344x2992", density: "480 dpi", os: "Android API 35+", env: "Emulator" },
+      { name: "Pixel 9 Pro Fold", model: "Pixel 9 Pro Fold AVD", size: "Tablet / Foldable", ratio: "2076x2152", density: "390 dpi", os: "Android API 35+", env: "Emulator" },
+      { name: "Pixel 9 Pro", model: "Pixel 9 Pro AVD", size: "Large", ratio: "1280x2856", density: "480 dpi", os: "Android API 35+", env: "Emulator" },
+      { name: "Pixel 8 Pro", model: "Pixel 8 Pro AVD", size: "Large", ratio: "1344x2992", density: "480 dpi", os: "Android API 34+", env: "Emulator" },
+      { name: "Pixel Fold", model: "Pixel Fold AVD", size: "Tablet / Foldable", ratio: "2208x1840", density: "420 dpi", os: "Android API 34+", env: "Emulator" },
+      { name: "Pixel 7 Pro", model: "Pixel 7 Pro AVD", size: "Large", ratio: "1440x3120", density: "560 dpi", os: "Android API 33+", env: "Emulator" },
+      { name: "Pixel 6 Pro", model: "Pixel 6 Pro AVD", size: "Large", ratio: "1440x3120", density: "560 dpi", os: "Android API 31+", env: "Emulator" },
+      { name: "Pixel 4 XL", model: "Pixel 4 XL AVD", size: "Large", ratio: "1440x3040", density: "560 dpi", os: "Android API 29+", env: "Emulator" },
+      { name: "Medium Tablet", model: "Medium Tablet AVD", size: "Tablet", ratio: "2560x1600", density: "320 dpi", os: "Android API 24+", env: "Emulator" },
+      { name: "Pixel Tablet", model: "Pixel Tablet AVD", size: "Tablet", ratio: "2560x1600", density: "320 dpi", os: "Android API 33+", env: "Emulator" },
+      { name: "Small Desktop", model: "Small Desktop AVD", size: "Desktop", ratio: "1366x768", density: "160 dpi", os: "Android API 32+", env: "Emulator" },
+      { name: "Medium Desktop", model: "Medium Desktop AVD", size: "Desktop", ratio: "3840x2160", density: "320 dpi", os: "Android API 32+", env: "Emulator" },
+      { name: "Large Desktop", model: "Large Desktop AVD", size: "Desktop", ratio: "1920x1080", density: "160 dpi", os: "Android API 32+", env: "Emulator" }
+    ];
+
+    let state = {};
+    let activeDevIdx = 0;
+    let searchQuery = "";
+
+    // Initialize state
+    function init() {
+      const saved = localStorage.getItem('nova_device_test_state_arka');
+      if (saved) {
+        try {
+          state = JSON.parse(saved);
+        } catch (e) {
+          console.error("Local storage parsing failed, resetting.", e);
+          resetStateData();
+        }
+      } else {
+        resetStateData();
+      }
+
+      // Check if saved state has mismatch in device size
+      devices.forEach((dev, idx) => {
+        if (!state[idx]) {
+          state[idx] = createEmptyDeviceState(dev);
+        }
+      });
+
+      renderSidebar();
+      renderWorkspace();
+    }
+
+    function createEmptyDeviceState(dev) {
+      return {
+        model: dev.model,
+        size: dev.size,
+        ratio: dev.ratio,
+        os: dev.os,
+        env: dev.env,
+        tester: "",
+        testedOs: "",
+        logs: "",
+        status: "PENDING", // PENDING, PASSED, PASSED_MINOR, FAILED
+        checked: {}, // itemId -> boolean
+        notes: {}    // itemId -> string
+      };
+    }
+
+    function resetStateData() {
+      state = {};
+      devices.forEach((dev, idx) => {
+        state[idx] = createEmptyDeviceState(dev);
+      });
+      localStorage.setItem('nova_device_test_state_arka', JSON.stringify(state));
+    }
+
+    // Sidebar renderer
+    function renderSidebar() {
+      const container = document.getElementById('device-list-container');
+      container.innerHTML = "";
+
+      let testedCount = 0;
+
+      devices.forEach((dev, idx) => {
+        // filter by query
+        if (searchQuery) {
+          const match = dev.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                        dev.os.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        dev.size.toLowerCase().includes(searchQuery.toLowerCase());
+          if (!match) return;
+        }
+
+        const devState = state[idx] || createEmptyDeviceState(dev);
+        
+        // calculate checks
+        let checkedCount = 0;
+        checklistItems.forEach(item => {
+          if (!item.isHeader && devState.checked[item.id]) {
+            checkedCount++;
+          }
+        });
+
+        if (checkedCount > 0 || devState.logs.trim() || devState.tester || devState.testedOs) {
+          testedCount++;
+        }
+
+        const pct = Math.round((checkedCount / checklistItemCount) * 100);
+
+        const itemDiv = document.createElement('button');
+        itemDiv.className = `device-item ${idx === activeDevIdx ? 'active' : ''}`;
+        itemDiv.onclick = () => switchDevice(idx);
+
+        itemDiv.innerHTML = `
+          <div class="device-item-info">
+            <span class="device-item-name">${dev.name}</span>
+            <span class="device-item-meta">${dev.os.replace('Android ', '')} | ${dev.ratio}</span>
+          </div>
+          <span class="device-item-progress">${pct}%</span>
+        `;
+
+        container.appendChild(itemDiv);
+      });
+
+      // Update statistics
+      const totalTestedText = document.getElementById('stats-completion-text');
+      const statsPct = document.getElementById('stats-pct');
+      
+      let overallCompletedPct = 0;
+      let totalChecks = 0;
+      let checkedChecks = 0;
+
+      devices.forEach((_, idx) => {
+        const devState = state[idx];
+        checklistItems.forEach(item => {
+          if (!item.isHeader) {
+            totalChecks++;
+            if (devState && devState.checked[item.id]) {
+              checkedChecks++;
+            }
+          }
+        });
+      });
+
+      overallCompletedPct = Math.round((checkedChecks / totalChecks) * 100);
+
+      totalTestedText.innerText = `${testedCount} / 17 Tested`;
+      statsPct.innerText = `${overallCompletedPct}%`;
+    }
+
+    // Active Device workspace renderer
+    function renderWorkspace() {
+      const container = document.getElementById('workspace-container');
+      const dev = devices[activeDevIdx];
+      const devState = state[activeDevIdx];
+
+      // Calculate checked count
+      let checkedCount = 0;
+      checklistItems.forEach(item => {
+        if (!item.isHeader && devState.checked[item.id]) {
+          checkedCount++;
+        }
+      });
+      const currentPct = Math.round((checkedCount / checklistItemCount) * 100);
+
+      let html = `
+        <div class="panel-header">
+          <div class="panel-title">
+            <span>📱 ${dev.name}</span>
+            <span class="meta-chip meta-chip-cyan">${dev.ratio}</span>
+            <span class="meta-chip meta-chip-purple">${dev.density}</span>
+          </div>
+          <div class="panel-meta-chips">
+            <span class="meta-chip">${dev.os}</span>
+            <span class="meta-chip">${currentPct}% Completed</span>
+          </div>
+        </div>
+
+        <div class="metadata-form">
+          <div class="form-group">
+            <label>AVD Profile Name</label>
+            <input type="text" id="meta-model" value="${devState.model}" oninput="updateMeta('model', this.value)">
+          </div>
+          <div class="form-group">
+            <label>Screen Size Category</label>
+            <select id="meta-size" onchange="updateMeta('size', this.value)">
+              <option value="Small" ${devState.size === 'Small' ? 'selected' : ''}>Small (~5")</option>
+              <option value="Medium" ${devState.size === 'Medium' ? 'selected' : ''}>Medium (~6")</option>
+              <option value="Large" ${devState.size === 'Large' ? 'selected' : ''}>Large (~6.7"+)</option>
+              <option value="Tablet" ${devState.size === 'Tablet' ? 'selected' : ''}>Tablet</option>
+              <option value="Desktop" ${devState.size === 'Desktop' ? 'selected' : ''}>Desktop</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Aspect Ratio / Resolution</label>
+            <input type="text" id="meta-ratio" value="${devState.ratio}" oninput="updateMeta('ratio', this.value)">
+          </div>
+          <div class="form-group">
+            <label>Default Emulator OS</label>
+            <input type="text" id="meta-os" value="${devState.os}" oninput="updateMeta('os', this.value)">
+          </div>
+          <div class="form-group">
+            <label>Tested OS / API Version</label>
+            <input type="text" id="meta-testedOs" value="${devState.testedOs || ''}" placeholder="e.g. Android 14 (API 34)" oninput="updateMeta('testedOs', this.value)">
+          </div>
+          <div class="form-group">
+            <label>Test Environment</label>
+            <select id="meta-env" onchange="updateMeta('env', this.value)">
+              <option value="Emulator" ${devState.env === 'Emulator' ? 'selected' : ''}>Emulator (AVD)</option>
+              <option value="Physical" ${devState.env === 'Physical' ? 'selected' : ''}>Physical Device</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tester Name</label>
+            <input type="text" id="meta-tester" value="${devState.tester}" placeholder="Who is testing?" oninput="updateMeta('tester', this.value)">
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 25%">Category / Feature</th>
+              <th style="width: 45%">Verification Description</th>
+              <th style="width: 10%; text-align: center;">Verified?</th>
+              <th style="width: 20%">Notes & Observations</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      checklistItems.forEach(item => {
+        if (item.isHeader) {
+          html += `
+            <tr class="row-header">
+              <td colspan="4">${item.section}</td>
+            </tr>
+          `;
+        } else {
+          const isChecked = devState.checked[item.id] ? "checked" : "";
+          const noteVal = devState.notes[item.id] || "";
+          html += `
+            <tr>
+              <td style="font-weight:600;">${item.desc}</td>
+              <td style="font-size:0.82rem; color:var(--text-muted);">${item.details}</td>
+              <td class="checkbox-cell">
+                <input type="checkbox" class="custom-chk" id="chk-${item.id}" ${isChecked} onchange="toggleCheck('${item.id}', this.checked)">
+              </td>
+              <td>
+                <input type="text" class="notes-input" id="note-${item.id}" value="${noteVal}" placeholder="No issues" oninput="updateNote('${item.id}', this.value)">
+              </td>
+            </tr>
+          `;
+        }
+      });
+
+      html += `
+          </tbody>
+        </table>
+
+        <div class="logs-box">
+          <label>📝 General Logs & Bugs Observed (${dev.name})</label>
+          <textarea id="meta-logs" placeholder="Type any styling stutters, layout overflows, or system logs..." oninput="updateMeta('logs', this.value)">${devState.logs}</textarea>
+        </div>
+      `;
+
+      container.innerHTML = html;
+    }
+
+    // Handlers & State Updators
+    function switchDevice(idx) {
+      activeDevIdx = idx;
+      renderSidebar();
+      renderWorkspace();
+    }
+
+    // Search query helper
+    function handleSearch() {
+      searchQuery = document.getElementById('search-input').value;
+      renderSidebar();
+    }
+
+    function updateMeta(field, val) {
+      state[activeDevIdx][field] = val;
+      saveState();
+      
+      // Update name or metadata in the sidebar immediately
+      if (field === 'model' || field === 'os' || field === 'ratio' || field === 'logs' || field === 'tester' || field === 'testedOs') {
+        renderSidebar();
+      }
+    }
+
+    function toggleCheck(itemId, checked) {
+      state[activeDevIdx].checked[itemId] = checked;
+      saveState();
+      renderSidebar();
+      
+      // Update completion details without resetting focus
+      let checkedCount = 0;
+      checklistItems.forEach(item => {
+        if (!item.isHeader && state[activeDevIdx].checked[item.id]) {
+          checkedCount++;
+        }
+      });
+      const pct = Math.round((checkedCount / checklistItemCount) * 100);
+      document.querySelectorAll('.panel-meta-chips span')[1].innerText = `${pct}% Completed`;
+    }
+
+    function updateNote(itemId, noteText) {
+      state[activeDevIdx].notes[itemId] = noteText;
+      saveState();
+      renderSidebar(); // Update statistical testing metrics
+    }
+
+    function saveState() {
+      localStorage.setItem('nova_device_test_state_arka', JSON.stringify(state));
+    }
+
+    // Reset all form states
+    function resetForm() {
+      if (confirm("Reset all 17 device survey grids? All saved metrics will be lost permanently.")) {
+        resetStateData();
+        activeDevIdx = 0;
+        document.getElementById('search-input').value = "";
+        searchQuery = "";
+        init();
+      }
+    }
+
+    function escapeCsv(val) {
+      if (val === undefined || val === null) return '""';
+      let str = String(val);
+      str = str.replace(/"/g, '""');
+      return `"${str}"`;
+    }
+
+    // Dynamic CSV Exporter
+    function exportToCsv() {
+      const scope = document.getElementById('print-scope').value;
+      const headers = [
+        "Device Name", "Model Name", "Default OS", "Tested OS", "Screen Size", 
+        "Resolution", "Environment", "Tester", "Category", "Item Name", 
+        "Verified", "Notes", "General Logs"
+      ];
+      
+      let csvRows = [headers.map(escapeCsv).join(",")];
+      
+      devices.forEach((dev, idx) => {
+        const devState = state[idx];
+        
+        // Scope filters
+        if (scope === 'active' && idx !== activeDevIdx) return;
+        if (scope === 'tested') {
+          let checkedCount = 0;
+          checklistItems.forEach(item => {
+            if (!item.isHeader && devState.checked[item.id]) checkedCount++;
+          });
+          const hasInputs = checkedCount > 0 || devState.logs.trim() || devState.tester.trim() || (devState.testedOs && devState.testedOs.trim());
+          if (!hasInputs) return;
+        }
+
+        let currentCategory = "";
+        checklistItems.forEach(item => {
+          if (item.isHeader) {
+            currentCategory = item.section;
+          } else {
+            const isVerified = devState.checked[item.id] ? "Yes" : "No";
+            const note = devState.notes[item.id] || "";
+            const row = [
+              dev.name,
+              devState.model,
+              devState.os,
+              devState.testedOs || "",
+              devState.size,
+              devState.ratio,
+              devState.env,
+              devState.tester,
+              currentCategory,
+              item.desc,
+              isVerified,
+              note,
+              devState.logs
+            ];
+            csvRows.push(row.map(escapeCsv).join(","));
+          }
+        });
+      });
+
+      const csvString = csvRows.join("\n");
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `nova_device_report_arka_${scope}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // Dynamic print constructor
+    function exportToPdf() {
+      const scope = document.getElementById('print-scope').value;
+      const printContainer = document.getElementById('print-container');
+      
+      let html = `<h1 class="print-title">Nova Code — Manual AVD Device Test Report (Arka)</h1>`;
+      
+      devices.forEach((dev, idx) => {
+        const devState = state[idx];
+        
+        // Scope filters
+        if (scope === 'active' && idx !== activeDevIdx) return;
+        if (scope === 'tested') {
+          let checkedCount = 0;
+          checklistItems.forEach(item => {
+            if (!item.isHeader && devState.checked[item.id]) checkedCount++;
+          });
+          const hasInputs = checkedCount > 0 || devState.logs.trim() || devState.tester.trim() || (devState.testedOs && devState.testedOs.trim());
+          if (!hasInputs) return;
+        }
+
+        // Render device report card for PDF
+        html += `
+          <div class="print-device-section">
+            <h2 class="print-device-header">📱 Device Profile: ${dev.name}</h2>
+            <div class="print-device-meta">
+              <div><strong>Model:</strong> ${devState.model}</div>
+              <div><strong>OS/API:</strong> ${devState.os}</div>
+              <div><strong>Tested OS:</strong> ${devState.testedOs || 'Not specified'}</div>
+              <div><strong>Resolution:</strong> ${devState.ratio}</div>
+              <div><strong>Size Profile:</strong> ${devState.size}</div>
+              <div><strong>Environment:</strong> ${devState.env}</div>
+              <div style="grid-column: span 3"><strong>Tester:</strong> ${devState.tester || 'Not specified'}</div>
+            </div>
+            
+            <table class="print-table">
+              <thead>
+                <tr>
+                  <th style="width: 30%">Category / Item</th>
+                  <th style="width: 50%">Verification Standard</th>
+                  <th style="width: 8%; text-align: center;">Status</th>
+                  <th style="width: 12%">Note</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+
+        checklistItems.forEach(item => {
+          if (item.isHeader) {
+            html += `
+              <tr class="row-header">
+                <td colspan="4">${item.section}</td>
+              </tr>
+            `;
+          } else {
+            const chkChar = devState.checked[item.id] ? "✓" : " ";
+            const noteText = devState.notes[item.id] ? devState.notes[item.id] : "";
+            html += `
+              <tr>
+                <td style="font-weight:bold;">${item.desc}</td>
+                <td>${item.details}</td>
+                <td style="text-align:center;">
+                  <div class="print-chk-box">${chkChar}</div>
+                </td>
+                <td class="print-notes">${noteText}</td>
+              </tr>
+            `;
+          }
+        });
+
+        html += `
+              </tbody>
+            </table>
+        `;
+
+        if (devState.logs.trim()) {
+          html += `
+            <div class="print-logs">
+              <strong>General Logs & Visual Issues Logged:</strong>
+              <p style="margin-top:5px; white-space: pre-wrap;">${devState.logs}</p>
+            </div>
+          `;
+        }
+
+        html += `</div>`; // Close device section
+      });
+
+      printContainer.innerHTML = html;
+      window.print();
+    }
+
+    function exportData() {
+      // 1. Download CSV
+      exportToCsv();
+      // 2. Trigger print PDF dialog with a tiny delay to allow download to fire
+      setTimeout(exportToPdf, 300);
+    }
+
+    // Initialize SPA on load
+    window.onload = init;
+  </script>
+</body>
+</html>

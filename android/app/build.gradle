@@ -3,6 +3,18 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply plugin: "com.google.gms.google-services"
 
+import org.apache.tools.ant.taskdefs.condition.Os
+
+def resolveNodeBinary() {
+    def binary = project.findProperty('NODE_BINARY') ?: System.getenv('NODE_BINARY') ?: "node"
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        if (binary.startsWith('/')) {
+            return "node"
+        }
+    }
+    return binary
+}
+
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
@@ -26,7 +38,7 @@ react {
 
     /* Bundling */
     //   A list containing the node command and its flags. Default is just 'node'.
-    nodeExecutableAndArgs = [project.findProperty('NODE_BINARY') ?: "node"]
+    nodeExecutableAndArgs = [resolveNodeBinary()]
     //
     //   The command to run when bundling. By default is 'bundle'
     // bundleCommand = "ram-bundle"
