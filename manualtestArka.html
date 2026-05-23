@@ -385,6 +385,25 @@
       border-color: var(--accent-cyan);
     }
 
+    .ratio-inputs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ratio-inputs input {
+      flex: 1;
+      min-width: 0;
+      text-align: center;
+    }
+
+    .ratio-separator {
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 1rem;
+      user-select: none;
+    }
+
     /* Verification Table */
     table {
       width: 100%;
@@ -880,6 +899,11 @@
       const dev = devices[activeDevIdx];
       const devState = state[activeDevIdx];
 
+      // Parse ratio into width and height
+      let [w, h] = (devState.ratio || "").split(/[x×]/i);
+      w = w ? w.trim() : "";
+      h = h ? h.trim() : "";
+
       // Calculate checked count
       let checkedCount = 0;
       checklistItems.forEach(item => {
@@ -919,7 +943,11 @@
           </div>
           <div class="form-group">
             <label>Aspect Ratio / Resolution</label>
-            <input type="text" id="meta-ratio" value="${devState.ratio}" oninput="updateMeta('ratio', this.value)">
+            <div class="ratio-inputs">
+              <input type="text" id="meta-ratio-w" value="${w}" placeholder="Width" oninput="updateRatio()">
+              <span class="ratio-separator">×</span>
+              <input type="text" id="meta-ratio-h" value="${h}" placeholder="Height" oninput="updateRatio()">
+            </div>
           </div>
           <div class="form-group">
             <label>Default Emulator OS</label>
@@ -1013,6 +1041,13 @@
       if (field === 'model' || field === 'os' || field === 'ratio' || field === 'logs' || field === 'tester' || field === 'testedOs') {
         renderSidebar();
       }
+    }
+
+    function updateRatio() {
+      const w = document.getElementById('meta-ratio-w').value.trim();
+      const h = document.getElementById('meta-ratio-h').value.trim();
+      const ratioVal = (w || h) ? `${w}x${h}` : '';
+      updateMeta('ratio', ratioVal);
     }
 
     function toggleCheck(itemId, checked) {
