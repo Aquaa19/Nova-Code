@@ -105,7 +105,7 @@ export const PackageManagerScreen: React.FC = () => {
     if (sessionId) {
       try {
         const httpUrl = engineUrl.replace('ws://', 'http://').replace('wss://', 'https://');
-        const res = await fetch(`${httpUrl}/sessions/${sessionId}/packages`, {
+        const res = await fetch(`${httpUrl}/sessions/${sessionId}/packages?projectName=${encodeURIComponent(currentProject?.name || '')}`, {
           headers: { 'x-auth-token': engineAuthToken }
         });
         if (res.ok) {
@@ -181,7 +181,7 @@ export const PackageManagerScreen: React.FC = () => {
           style: 'destructive',
           onPress: async () => {
             const command = activeRegistry === 'npm' 
-              ? `npm uninstall ${pkg.name}` 
+              ? (currentProject?.name ? `cd ${currentProject.name} && npm uninstall ${pkg.name}` : `npm uninstall ${pkg.name}`)
               : `rm -rf /workspace/.python_packages/${pkg.name}*`;
 
             const httpUrl = engineUrl.replace('ws://', 'http://').replace('wss://', 'https://');
@@ -241,6 +241,7 @@ export const PackageManagerScreen: React.FC = () => {
       <InstallOverlay
         visible={!!installingPkg}
         packageName={installingPkg?.name || ''}
+        projectName={currentProject?.name || ''}
         registry={activeRegistry}
         onComplete={handleInstallComplete}
       />

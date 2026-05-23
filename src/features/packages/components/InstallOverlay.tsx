@@ -12,6 +12,7 @@ import { useSettingsStore } from '../../../store/useSettingsStore';
 interface InstallOverlayProps {
   visible: boolean;
   packageName: string;
+  projectName?: string;
   registry: string;
   onComplete: () => void;
 }
@@ -19,6 +20,7 @@ interface InstallOverlayProps {
 export const InstallOverlay: React.FC<InstallOverlayProps> = ({
   visible,
   packageName,
+  projectName,
   registry,
   onComplete,
 }) => {
@@ -105,7 +107,7 @@ export const InstallOverlay: React.FC<InstallOverlayProps> = ({
       };
 
       const command = registry === 'npm'
-        ? `npm install ${packageName}`
+        ? (projectName ? `cd ${projectName} && npm install ${packageName}` : `npm install ${packageName}`)
         : `pip3 install --target=/workspace/.python_packages ${packageName}`;
 
       xhr.send(JSON.stringify({ command }));

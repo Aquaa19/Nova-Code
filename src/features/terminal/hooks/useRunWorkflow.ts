@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { Alert } from 'react-native';
-import { FileService } from '../../../services/FileService';
+import { FileService, PROJECTS_ROOT } from '../../../services/FileService';
 import { useTerminalEngine } from './useTerminalEngine';
 import { RUN_CONFIGS } from '../../../constants/runCommands';
 import { OpenFile } from '../../../store/useEditorStore';
@@ -150,14 +150,19 @@ export function useRunWorkflow(
       if (target.customCommand) {
         command = target.customCommand;
       } else {
-        const baseName = filename;
+        const pathParts = filename.split('/');
+        const projectName = pathParts.length > 1 ? pathParts[0] : '';
+        const relativeFilePath = pathParts.length > 1 ? pathParts.slice(1).join('/') : filename;
+
+        const baseName = relativeFilePath;
         const className = baseName.replace(/\.[^/.]+$/, ''); // Remove extension for Java
         
         const configArgs = target.config.args.join(' ')
           .replace(/{filename}/g, baseName)
           .replace(/{classname}/g, className);
           
-        command = `${target.config.command} ${configArgs}`;
+        const runCmd = `${target.config.command} ${configArgs}`;
+        command = projectName ? `cd ${projectName} && ${runCmd}` : runCmd;
       }
       
       setRunningCommand(command);
@@ -174,11 +179,14 @@ export function useRunWorkflow(
         return;
       }
       
-      const fileName = target.path.split('/').pop() ?? 'main';
-      setTerminalLines(prev => [...prev, `Uploading ${fileName}...`]);
+      const relativePath = target.path.startsWith(PROJECTS_ROOT)
+        ? target.path.substring(PROJECTS_ROOT.length + 1)
+        : target.path.split('/').pop() ?? 'main';
+        
+      setTerminalLines(prev => [...prev, `Uploading ${relativePath}...`]);
       
       FileService.readFile(target.path)
-        .then(content => sendFile(fileName, content))
+        .then(content => sendFile(relativePath, content))
         .catch(() => setTerminalLines(prev => [...prev, 'Failed to read file for upload.']));
     },
     onDisconnected: () => {

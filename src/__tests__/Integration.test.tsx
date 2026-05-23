@@ -22,8 +22,8 @@ jest.mock('../services/FileService', () => ({
 describe('App Integration Flows', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    useEditorStore.setState({ activeFile: undefined, openFiles: [] });
-    useProjectStore.setState({ currentProject: null, projects: [] });
+    useEditorStore.setState({ activeIndex: 0, openFiles: [] });
+    useProjectStore.setState({ currentProject: null, recentProjects: [] });
   });
 
   it('should verify project creation flow generating template structure correctly', async () => {
@@ -60,7 +60,7 @@ describe('App Integration Flows', () => {
   });
 
   it('should verify workspace execution workflow and run configuration mappings', async () => {
-    const mockProject = { id: '1', name: 'MyProject', path: '/mock/projects/MyProject', language: 'python' };
+    const mockProject = { name: 'MyProject', path: '/mock/projects/MyProject', language: 'python', lastOpened: Date.now() };
     useProjectStore.setState({ currentProject: mockProject });
 
     expect(useProjectStore.getState().currentProject?.language).toBe('python');

@@ -17,8 +17,9 @@ import { AppText } from '../components/typography/AppText';
 import { theme } from '../theme';
 import { useTerminalStore } from '../store/useTerminalStore';
 import { useSettingsStore } from '../store/useSettingsStore';
-import { FileService } from '../services/FileService';
+import { FileService, PROJECTS_ROOT } from '../services/FileService';
 import { useEditorStore } from '../store/useEditorStore';
+import { useProjectStore } from '../store/useProjectStore';
 
 interface ConsoleLog {
   id: string;
@@ -34,6 +35,7 @@ export const PreviewScreen: React.FC = () => {
   const { sessionId } = useTerminalStore();
   const { engineUrl, engineAuthToken } = useSettingsStore();
   const { openFiles, activeIndex } = useEditorStore();
+  const { currentProject } = useProjectStore();
   const activeFile = openFiles[activeIndex];
 
   const [consoleOpen, setConsoleOpen] = useState(false);
@@ -44,9 +46,15 @@ export const PreviewScreen: React.FC = () => {
   const consoleScrollRef = useRef<ScrollView>(null);
 
   const httpUrl = engineUrl.replace('ws://', 'http://').replace('wss://', 'https://');
-  const previewUri = sessionId ? `${httpUrl}/sessions/${sessionId}/preview/index.html` : '';
+  const previewUri = sessionId
+    ? (currentProject
+        ? `${httpUrl}/sessions/${sessionId}/preview/${currentProject.name}/index.html`
+        : `${httpUrl}/sessions/${sessionId}/preview/index.html`)
+    : '';
   const displayAddress = sessionId
-    ? `preview/${sessionId.substring(0, 8)}/index.html`
+    ? (currentProject
+        ? `preview/${sessionId.substring(0, 8)}/${currentProject.name}/index.html`
+        : `preview/${sessionId.substring(0, 8)}/index.html`)
     : 'No active session';
 
   // ── Auto-Spawn Session & Auto-Upload Active File ──
@@ -91,7 +99,10 @@ export const PreviewScreen: React.FC = () => {
         try {
           setIsLoading(true);
           const content = await FileService.readFile(activeFile.path);
-          const filename = activeFile.path.split('/').pop() || 'index.html';
+          
+          const relativePath = activeFile.path.startsWith(PROJECTS_ROOT)
+            ? activeFile.path.substring(PROJECTS_ROOT.length + 1)
+            : activeFile.path.split('/').pop() || 'index.html';
 
           const uploadRes = await fetch(`${httpUrl}/sessions/${currentSessionId}/upload`, {
             method: 'POST',
@@ -99,7 +110,7 @@ export const PreviewScreen: React.FC = () => {
               'Content-Type': 'application/json',
               'x-auth-token': engineAuthToken,
             },
-            body: JSON.stringify({ filename, content }),
+            body: JSON.stringify({ filename: relativePath, content }),
           });
 
           if (uploadRes.ok && active) {
@@ -169,14 +180,18 @@ export const PreviewScreen: React.FC = () => {
       setIsLoading(true);
       setHasError(false);
       const content = await FileService.readFile(activeFile.path);
-      const filename = activeFile.path.split('/').pop() || 'index.html';
+      
+      const relativePath = activeFile.path.startsWith(PROJECTS_ROOT)
+        ? activeFile.path.substring(PROJECTS_ROOT.length + 1)
+        : activeFile.path.split('/').pop() || 'index.html';
+
       await fetch(`${httpUrl}/sessions/${sessionId}/upload`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-auth-token': engineAuthToken,
         },
-        body: JSON.stringify({ filename, content }),
+        body: JSON.stringify({ filename: relativePath, content }),
       });
       webviewRef.current?.reload();
     } catch (e) {
