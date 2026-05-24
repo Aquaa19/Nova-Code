@@ -35,10 +35,14 @@
     term.loadAddon(fitAddon);
     term.open(document.getElementById('terminal'));
     
-    // Resize observers
+    // Resize observers with debouncing to prevent spamming the backend PTY with SIGWINCH signals
+    let resizeTimeout;
     window.addEventListener('resize', () => {
       fitAddon.fit();
-      sendToRN({ type: 'resize', cols: term.cols, rows: term.rows });
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        sendToRN({ type: 'resize', cols: term.cols, rows: term.rows });
+      }, 150);
     });
 
     setTimeout(() => {
