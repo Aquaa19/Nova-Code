@@ -31,6 +31,56 @@ interface ConsoleLog {
 
 const CONSOLE_DRAWER_HEIGHT = 280;
 
+const INJECTED_JAVASCRIPT = `
+  (function() {
+    const originalConsole = {
+      log: console.log,
+      warn: console.warn,
+      error: console.error
+    };
+    function forwardLog(level, args) {
+      const message = Array.from(args).map(a => {
+        if (a instanceof Error) return a.message + '\\n' + a.stack;
+        if (typeof a === 'object') {
+          try {
+            return JSON.stringify(a);
+          } catch(e) {
+            return String(a);
+          }
+        }
+        return String(a);
+      }).join(' ');
+      
+      if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'console',
+          level: level,
+          message: message,
+          timestamp: Date.now()
+        }));
+      }
+    }
+    console.log = function() {
+      originalConsole.log.apply(console, arguments);
+      forwardLog('log', arguments);
+    };
+    console.warn = function() {
+      originalConsole.warn.apply(console, arguments);
+      forwardLog('warn', arguments);
+    };
+    console.error = function() {
+      originalConsole.error.apply(console, arguments);
+      forwardLog('error', arguments);
+    };
+    window.onerror = function(msg, url, lineNo, columnNo, error) {
+      const stack = error && error.stack ? '\\n' + error.stack : '';
+      forwardLog('error', [msg + ' (' + url + ':' + lineNo + ':' + columnNo + ')' + stack]);
+      return false;
+    };
+  })();
+  true;
+`;
+
 export const PreviewScreen: React.FC = () => {
   const webviewRef = useRef<WebView>(null);
   const { sessionId } = useTerminalStore();
@@ -151,23 +201,7 @@ export const PreviewScreen: React.FC = () => {
     };
   }, [activeFile?.path, sessionId, httpUrl, engineAuthToken]);
 
-  // ── Console Log Polling ──
-  useEffect(() => {
-    if (!consoleOpen || !sessionId) return;
-    const pollId = setInterval(async () => {
-      try {
-        const res = await fetch(`${httpUrl}/sessions/${sessionId}/console`);
-        if (res.ok) {
-          const data = await res.json();
-          setLogs(data.logs || []);
-          if ((data.logs || []).length > 0) {
-            setTimeout(() => consoleScrollRef.current?.scrollToEnd({ animated: false }), 20);
-          }
-        }
-      } catch (_) {}
-    }, 1000);
-    return () => clearInterval(pollId);
-  }, [consoleOpen, sessionId, httpUrl]);
+  // Note: Console log polling is replaced by Native WebView bridge events in handleWebViewMessage
 
   const toggleConsole = useCallback(() => {
     const toValue = consoleOpen ? 0 : CONSOLE_DRAWER_HEIGHT;
@@ -183,6 +217,7 @@ export const PreviewScreen: React.FC = () => {
   const handleSoftReload = useCallback(() => {
     setHasError(false);
     setIsLoading(true);
+    setLogs([]);
     webviewRef.current?.reload();
   }, []);
 
@@ -191,6 +226,7 @@ export const PreviewScreen: React.FC = () => {
     try {
       setIsLoading(true);
       setHasError(false);
+      setLogs([]);
       const content = await FileService.readFile(activeFile.path);
       
       const relativePath = activeFile.path.startsWith(PROJECTS_ROOT)
@@ -211,6 +247,25 @@ export const PreviewScreen: React.FC = () => {
       setIsLoading(false);
     }
   }, [activeFile, sessionId, httpUrl, engineAuthToken, localUserId]);
+
+  const handleWebViewMessage = useCallback((event: any) => {
+    try {
+      const payload = JSON.parse(event.nativeEvent.data);
+      if (payload.type === 'console') {
+        const newLog = {
+          id: Math.random().toString(36).substring(7),
+          level: payload.level,
+          message: payload.message,
+          timestamp: payload.timestamp || Date.now(),
+        };
+        setLogs(prev => {
+          const updated = [...prev, newLog];
+          setTimeout(() => consoleScrollRef.current?.scrollToEnd({ animated: true }), 50);
+          return updated;
+        });
+      }
+    } catch (e) {}
+  }, []);
 
   const handleClearConsole = useCallback(async () => {
     if (!sessionId) return;
@@ -296,6 +351,8 @@ export const PreviewScreen: React.FC = () => {
             javaScriptEnabled
             domStorageEnabled
             allowFileAccess={false}
+            injectedJavaScriptBeforeContentLoaded={INJECTED_JAVASCRIPT}
+            onMessage={handleWebViewMessage}
             onLoadStart={() => { setIsLoading(true); setHasError(false); }}
             onLoadEnd={() => setIsLoading(false)}
             onError={() => { setIsLoading(false); setHasError(true); }}
