@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView, ViewStyle } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ScrollView, ViewStyle, Keyboard, Platform } from 'react-native';
 import { SafeAreaWrapper } from './SafeAreaWrapper';
 import { AmbientBackground } from './AmbientBackground';
 import { theme } from '../../theme';
@@ -21,7 +21,22 @@ export const ScreenContainer: React.FC<ScreenContainerProps> = ({
   backgroundVariant = 'default',
   contentContainerStyle,
 }) => {
-  const paddingBottom = withBottomTabs ? theme.spacing.bottomTabHeight : 0;
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, () => setKeyboardVisible(true));
+    const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardVisible(false));
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  const paddingBottom = (withBottomTabs && !isKeyboardVisible) ? theme.spacing.bottomTabHeight : 0;
   
   const content = scrollable ? (
     <ScrollView

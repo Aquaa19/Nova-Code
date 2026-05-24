@@ -1,7 +1,7 @@
 // src/components/navigation/BottomTabBar.tsx
 
-import React from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Pressable, Keyboard, Platform } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { AppText } from '../typography/AppText';
 import { theme } from '../../theme';
@@ -23,6 +23,24 @@ export const BottomTabBar: React.FC<BottomTabBarProps> = ({
   activeId,
   onTabPress,
 }) => {
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, () => setKeyboardVisible(true));
+    const hideSub = Keyboard.addListener(hideEvent, () => setKeyboardVisible(false));
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  if (isKeyboardVisible) {
+    return null;
+  }
   return (
     <View style={styles.container}>
       <View style={[styles.content, theme.shadows.bottomNav]}>

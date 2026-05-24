@@ -1,7 +1,7 @@
 // src/screens/CodeEditorScreen.tsx
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { View, StyleSheet, Alert, AppState, AppStateStatus, Keyboard, ActivityIndicator, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Alert, AppState, AppStateStatus, Keyboard, ActivityIndicator, ScrollView, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { ScreenContainer } from '../components/layout/ScreenContainer';
 import { AppHeader } from '../components/navigation/AppHeader';
@@ -415,7 +415,12 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
         variant="transparent"
       />
       
-      <View style={styles.editorContainer}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 88 : 0}
+      >
+        <View style={styles.editorContainer}>
         {openFiles.length > 0 && (
           <FileTabBar
             tabs={openFiles}
@@ -530,7 +535,8 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
             </ScrollView>
           </View>
         )}
-      </View>
+        </View>
+      </KeyboardAvoidingView>
 
       {activeFile && !activeFile.isBinary && (
         <View style={styles.fabStack}>
