@@ -9,6 +9,7 @@ import {
   Animated,
   Text,
   ActivityIndicator,
+  TextInput,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -38,24 +39,30 @@ export const PreviewScreen: React.FC = () => {
   const { currentProject } = useProjectStore();
   const activeFile = openFiles[activeIndex];
 
+  const [customPort, setCustomPort] = useState<string | null>(null);
+
+  const httpUrl = engineUrl.replace('ws://', 'http://').replace('wss://', 'https://');
+  const previewUri = sessionId
+    ? (customPort
+        ? `${httpUrl}/sessions/${sessionId}/proxy/${customPort}/`
+        : (currentProject
+            ? `${httpUrl}/sessions/${sessionId}/preview/${currentProject.name}/index.html`
+            : `${httpUrl}/sessions/${sessionId}/preview/index.html`))
+    : '';
+  const displayAddress = sessionId
+    ? (customPort
+        ? `http://localhost:${customPort}/`
+        : (currentProject
+            ? `preview/${sessionId.substring(0, 8)}/${currentProject.name}/index.html`
+            : `preview/${sessionId.substring(0, 8)}/index.html`))
+    : 'No active session';
+
   const [consoleOpen, setConsoleOpen] = useState(false);
   const [logs, setLogs] = useState<ConsoleLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const consoleHeight = useRef(new Animated.Value(0)).current;
   const consoleScrollRef = useRef<ScrollView>(null);
-
-  const httpUrl = engineUrl.replace('ws://', 'http://').replace('wss://', 'https://');
-  const previewUri = sessionId
-    ? (currentProject
-        ? `${httpUrl}/sessions/${sessionId}/preview/${currentProject.name}/index.html`
-        : `${httpUrl}/sessions/${sessionId}/preview/index.html`)
-    : '';
-  const displayAddress = sessionId
-    ? (currentProject
-        ? `preview/${sessionId.substring(0, 8)}/${currentProject.name}/index.html`
-        : `preview/${sessionId.substring(0, 8)}/index.html`)
-    : 'No active session';
 
   // ── Auto-Spawn Session & Auto-Upload Active File ──
   useEffect(() => {
@@ -241,6 +248,20 @@ export const PreviewScreen: React.FC = () => {
           <MaterialCommunityIcons name="lock-outline" size={10} color="rgba(255,255,255,0.35)" style={{ marginRight: 4 }} />
           <Text style={styles.addressText} numberOfLines={1}>{displayAddress}</Text>
         </View>
+        <View style={styles.portInputContainer}>
+          <Text style={styles.portLabel}>Port:</Text>
+          <TextInput
+            style={styles.portTextInput}
+            value={customPort || ''}
+            placeholder="Static"
+            placeholderTextColor="rgba(255,255,255,0.3)"
+            keyboardType="numeric"
+            onChangeText={(text) => {
+              const sanitized = text.replace(/[^0-9]/g, '');
+              setCustomPort(sanitized === '' ? null : sanitized);
+            }}
+          />
+        </View>
         <Pressable onPress={handleSoftReload} style={styles.chromeRefreshBtn}>
           <MaterialCommunityIcons name="reload" size={16} color="rgba(255,255,255,0.4)" />
         </Pressable>
@@ -390,6 +411,32 @@ const styles = StyleSheet.create({
   chromeRefreshBtn: {
     padding: 8,
     marginLeft: 6,
+  },
+  portInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.25)',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginLeft: 6,
+    width: 85,
+  },
+  portLabel: {
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 10,
+    marginRight: 4,
+    fontFamily: 'monospace',
+  },
+  portTextInput: {
+    flex: 1,
+    color: '#ffffff',
+    fontSize: 11,
+    fontFamily: 'monospace',
+    padding: 0,
+    height: 20,
   },
   webViewContainer: {
     flex: 1,
