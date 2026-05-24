@@ -15,7 +15,7 @@ import { GlassCard } from '../components/cards/GlassCard';
 import { theme } from '../theme';
 
 // Services & Hooks
-import { FileService } from '../services/FileService';
+import { FileService, PROJECTS_ROOT } from '../services/FileService';
 import { useEditorStore } from '../store/useEditorStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { useProjectStore } from '../store/useProjectStore';
@@ -101,7 +101,10 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
         // Auto-sync file changes to execution sandbox if session is running
         if (sessionId) {
           const httpUrl = settings.engineUrl.replace('ws://', 'http://').replace('wss://', 'https://');
-          const filename = activeFile.path.split('/').pop() || '';
+          const filename = activeFile.path.startsWith(PROJECTS_ROOT)
+            ? activeFile.path.substring(PROJECTS_ROOT.length + 1)
+            : activeFile.path.split('/').pop() || '';
+          
           fetch(`${httpUrl}/sessions/${sessionId}/upload`, {
             method: 'POST',
             headers: {
