@@ -11,6 +11,8 @@ import { FileTree } from '../features/files/components/FileTree';
 import { FileService, PROJECTS_ROOT, FileNode } from '../services/FileService';
 import { useProjectStore, Project } from '../store/useProjectStore';
 import { useEditorStore } from '../store/useEditorStore';
+import { useSettingsStore } from '../store/useSettingsStore';
+import { useTerminalStore } from '../store/useTerminalStore';
 
 // Modals & Drawers
 import { ActionSheetModal, ActionItem } from '../components/modals/ActionSheetModal';
@@ -29,6 +31,8 @@ import { theme } from '../theme';
 export const FileExplorerScreen: React.FC<any> = ({ navigation }) => {
   const [selectedPath, setSelectedPath] = useState<string>();
   const { currentProject, setCurrentProject, addRecentProject } = useProjectStore();
+  const { engineUrl, engineAuthToken, localUserId } = useSettingsStore();
+  const { sessionId } = useTerminalStore();
 
   const rootPath = currentProject?.path ?? PROJECTS_ROOT;
 
@@ -83,7 +87,45 @@ export const FileExplorerScreen: React.FC<any> = ({ navigation }) => {
     try {
       if (newItemMode === 'rename' && actionTarget) {
         const parentPath = actionTarget.path.substring(0, actionTarget.path.lastIndexOf('/'));
-        await FileService.rename(actionTarget.path, `${parentPath}/${value}`);
+        const newPath = `${parentPath}/${value}`;
+        await FileService.rename(actionTarget.path, newPath);
+
+        if (sessionId) {
+          const httpUrl = engineUrl.replace('ws://', 'http://').replace('wss://', 'https://');
+          const oldFilename = actionTarget.path.startsWith(PROJECTS_ROOT)
+            ? actionTarget.path.substring(PROJECTS_ROOT.length + 1)
+            : actionTarget.path.split('/').pop() || '';
+          const newFilename = newPath.startsWith(PROJECTS_ROOT)
+            ? newPath.substring(PROJECTS_ROOT.length + 1)
+            : newPath.split('/').pop() || '';
+
+          // 1. Delete old path on server
+          fetch(`${httpUrl}/sessions/${sessionId}/files`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-auth-token': engineAuthToken,
+              'x-user-id': localUserId,
+            },
+            body: JSON.stringify({ filename: oldFilename }),
+          }).catch(e => console.warn('[Sync] Rename old path delete failed:', e));
+
+          // 2. If it's a file, upload new path contents
+          if (!actionTarget.isDirectory) {
+            try {
+              const content = await FileService.readFile(newPath);
+              fetch(`${httpUrl}/sessions/${sessionId}/upload`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-auth-token': engineAuthToken,
+                  'x-user-id': localUserId,
+                },
+                body: JSON.stringify({ filename: newFilename, content }),
+              }).catch(e => console.warn('[Sync] Rename new path upload failed:', e));
+            } catch (_) {}
+          }
+        }
       } else if (newItemMode === 'file') {
         await FileService.createFile(`${newItemTargetDir}/${value}`);
       } else if (newItemMode === 'folder') {
@@ -141,6 +183,23 @@ export const FileExplorerScreen: React.FC<any> = ({ navigation }) => {
             try {
               await FileService.deleteFile(node.path);
               setRefreshTrigger(prev => prev + 1);
+
+              if (sessionId) {
+                const httpUrl = engineUrl.replace('ws://', 'http://').replace('wss://', 'https://');
+                const filename = node.path.startsWith(PROJECTS_ROOT)
+                  ? node.path.substring(PROJECTS_ROOT.length + 1)
+                  : node.path.split('/').pop() || '';
+
+                fetch(`${httpUrl}/sessions/${sessionId}/files`, {
+                  method: 'DELETE',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'x-auth-token': engineAuthToken,
+                    'x-user-id': localUserId,
+                  },
+                  body: JSON.stringify({ filename }),
+                }).catch(e => console.warn('[Sync] Delete path failed:', e));
+              }
             } catch (e) {
               Alert.alert('Error', 'Could not delete item.');
             }
