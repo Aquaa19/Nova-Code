@@ -19,6 +19,7 @@ export interface Settings {
   gitAuthorEmail: string;
   gitPAT: string;
   lastUpdatedAt: number; // For cloud sync conflict resolution
+  localUserId: string;
 }
 
 interface SettingsStore extends Settings {
@@ -42,9 +43,14 @@ const defaults: Settings = {
   gitAuthorEmail: '',
   gitPAT: '',
   lastUpdatedAt: 0,
+  localUserId: '',
 };
 
 const persisted: Partial<Settings> = JSON.parse(storage.getString('settings') ?? '{}');
+if (!persisted.localUserId) {
+  persisted.localUserId = 'user-' + Math.random().toString(36).substring(2, 12);
+  storage.set('settings', JSON.stringify({ ...persisted, localUserId: persisted.localUserId }));
+}
 
 export const useSettingsStore = create<SettingsStore>(set => ({
   ...defaults,

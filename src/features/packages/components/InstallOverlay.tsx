@@ -30,7 +30,7 @@ export const InstallOverlay: React.FC<InstallOverlayProps> = ({
   const scrollViewRef = useRef<ScrollView>(null);
 
   const { sessionId } = useTerminalStore();
-  const { engineUrl, engineAuthToken } = useSettingsStore();
+  const { engineUrl, engineAuthToken, localUserId } = useSettingsStore();
 
   const rawBuffer = useRef<string>('');
 
@@ -53,6 +53,7 @@ export const InstallOverlay: React.FC<InstallOverlayProps> = ({
       xhr.open('POST', `${httpUrl}/sessions/${sessionId}/exec`);
       xhr.setRequestHeader('Content-Type', 'application/json');
       xhr.setRequestHeader('x-auth-token', engineAuthToken);
+      xhr.setRequestHeader('x-user-id', localUserId);
 
       let seenBytes = 0;
 
@@ -116,7 +117,7 @@ export const InstallOverlay: React.FC<InstallOverlayProps> = ({
         xhr.abort();
       };
     }
-  }, [visible, packageName, sessionId, engineUrl, engineAuthToken, onComplete]);
+  }, [visible, packageName, sessionId, engineUrl, engineAuthToken, localUserId, onComplete]);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={() => {}}>

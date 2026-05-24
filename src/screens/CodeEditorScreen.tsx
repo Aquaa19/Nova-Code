@@ -107,6 +107,7 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
             headers: {
               'Content-Type': 'application/json',
               'x-auth-token': settings.engineAuthToken,
+              'x-user-id': settings.localUserId,
             },
             body: JSON.stringify({ filename, content }),
           }).catch(e => console.warn('[Sync] failed to upload save to sandbox:', e));
@@ -115,7 +116,7 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
     } catch (e) {
       Alert.alert('Save Error', 'Could not write to file.');
     }
-  }, [activeFile, markSaved, sessionId, settings.engineUrl, settings.engineAuthToken]);
+  }, [activeFile, markSaved, sessionId, settings.engineUrl, settings.engineAuthToken, settings.localUserId]);
 
   const [isFormatting, setIsFormatting] = useState(false);
 
@@ -135,6 +136,7 @@ export const CodeEditorScreen: React.FC<any> = ({ route, navigation }) => {
         headers: {
           'Content-Type': 'application/json',
           'x-auth-token': settings.engineAuthToken,
+          'x-user-id': settings.localUserId,
         },
         body: JSON.stringify({ filename, language: 'python' }),
       });

@@ -33,7 +33,7 @@ const CONSOLE_DRAWER_HEIGHT = 280;
 export const PreviewScreen: React.FC = () => {
   const webviewRef = useRef<WebView>(null);
   const { sessionId } = useTerminalStore();
-  const { engineUrl, engineAuthToken } = useSettingsStore();
+  const { engineUrl, engineAuthToken, localUserId } = useSettingsStore();
   const { openFiles, activeIndex } = useEditorStore();
   const { currentProject } = useProjectStore();
   const activeFile = openFiles[activeIndex];
@@ -73,6 +73,7 @@ export const PreviewScreen: React.FC = () => {
             headers: {
               'Content-Type': 'application/json',
               'x-auth-token': engineAuthToken,
+              'x-user-id': localUserId,
             },
           });
           if (res.ok && active) {
@@ -109,6 +110,7 @@ export const PreviewScreen: React.FC = () => {
             headers: {
               'Content-Type': 'application/json',
               'x-auth-token': engineAuthToken,
+              'x-user-id': localUserId,
             },
             body: JSON.stringify({ filename: relativePath, content }),
           });
@@ -116,6 +118,9 @@ export const PreviewScreen: React.FC = () => {
           if (uploadRes.ok && active) {
             setHasError(false);
           } else if (active) {
+            if (uploadRes.status === 404) {
+              useTerminalStore.getState().setSessionId(null);
+            }
             setHasError(true);
           }
         } catch (e) {
@@ -190,6 +195,7 @@ export const PreviewScreen: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
           'x-auth-token': engineAuthToken,
+          'x-user-id': localUserId,
         },
         body: JSON.stringify({ filename: relativePath, content }),
       });
@@ -197,7 +203,7 @@ export const PreviewScreen: React.FC = () => {
     } catch (e) {
       setIsLoading(false);
     }
-  }, [activeFile, sessionId, httpUrl, engineAuthToken]);
+  }, [activeFile, sessionId, httpUrl, engineAuthToken, localUserId]);
 
   const handleClearConsole = useCallback(async () => {
     if (!sessionId) return;

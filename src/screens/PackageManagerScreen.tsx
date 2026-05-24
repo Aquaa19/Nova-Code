@@ -27,7 +27,7 @@ const TABS = [
 export const PackageManagerScreen: React.FC = () => {
   const { currentProject } = useProjectStore();
   const { sessionId } = useTerminalStore();
-  const { engineUrl, engineAuthToken } = useSettingsStore();
+  const { engineUrl, engineAuthToken, localUserId } = useSettingsStore();
   
   const [activeRegistry, setActiveRegistry] = useState<RegistryType>('npm');
   const [activeTab, setActiveTab] = useState('explore');
@@ -106,7 +106,10 @@ export const PackageManagerScreen: React.FC = () => {
       try {
         const httpUrl = engineUrl.replace('ws://', 'http://').replace('wss://', 'https://');
         const res = await fetch(`${httpUrl}/sessions/${sessionId}/packages?projectName=${encodeURIComponent(currentProject?.name || '')}`, {
-          headers: { 'x-auth-token': engineAuthToken }
+          headers: { 
+            'x-auth-token': engineAuthToken,
+            'x-user-id': localUserId
+          }
         });
         if (res.ok) {
           const data = await res.json();
@@ -187,7 +190,11 @@ export const PackageManagerScreen: React.FC = () => {
             const httpUrl = engineUrl.replace('ws://', 'http://').replace('wss://', 'https://');
             await fetch(`${httpUrl}/sessions/${sessionId}/exec`, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'x-auth-token': engineAuthToken },
+              headers: { 
+                'Content-Type': 'application/json', 
+                'x-auth-token': engineAuthToken,
+                'x-user-id': localUserId
+              },
               body: JSON.stringify({ command })
             });
             loadInstalled();

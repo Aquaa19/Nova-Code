@@ -13,7 +13,7 @@ interface UseTerminalEngineProps {
 }
 
 export const useTerminalEngine = (props: UseTerminalEngineProps) => {
-  const { engineUrl, engineAuthToken } = useSettingsStore();
+  const { engineUrl, engineAuthToken, localUserId } = useSettingsStore();
   const { sessionId, setSessionId } = useTerminalStore();
   const socketRef = useRef<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -36,7 +36,8 @@ export const useTerminalEngine = (props: UseTerminalEngineProps) => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-auth-token': engineAuthToken
+            'x-auth-token': engineAuthToken,
+            'x-user-id': localUserId
           }
         });
         if (!res.ok) throw new Error('Failed to start execution container');
@@ -46,7 +47,7 @@ export const useTerminalEngine = (props: UseTerminalEngineProps) => {
       }
 
       // 2. Open WebSocket connection
-      const wsUrl = `${engineUrl}/sessions/${activeSessionId}/terminal?token=${engineAuthToken}`;
+      const wsUrl = `${engineUrl}/sessions/${activeSessionId}/terminal?token=${engineAuthToken}&localUserId=${localUserId}`;
       const socket = new WebSocket(wsUrl);
       socketRef.current = socket;
 
@@ -81,7 +82,7 @@ export const useTerminalEngine = (props: UseTerminalEngineProps) => {
     } catch (err: any) {
       callbacksRef.current.onError?.(err.message);
     }
-  }, [engineUrl, engineAuthToken, setSessionId]);
+  }, [engineUrl, engineAuthToken, localUserId, setSessionId]);
 
   const disconnect = useCallback(() => {
     if (socketRef.current) {
@@ -109,7 +110,8 @@ export const useTerminalEngine = (props: UseTerminalEngineProps) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-auth-token': engineAuthToken
+        'x-auth-token': engineAuthToken,
+        'x-user-id': localUserId
       },
       body: JSON.stringify({ filename, content })
     })
