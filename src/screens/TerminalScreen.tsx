@@ -10,6 +10,7 @@ import { KeyboardAccessoryBar, AccessoryKey } from '../features/terminal/compone
 import { GlassCard } from '../components/cards/GlassCard';
 import { useTerminalStore } from '../store/useTerminalStore';
 import { useSettingsStore } from '../store/useSettingsStore';
+import { useProjectStore } from '../store/useProjectStore';
 import { theme } from '../theme';
 
 const ACCESSORY_KEYS = [
@@ -25,8 +26,9 @@ export const TerminalScreen: React.FC = () => {
   const wsRef = useRef<WebSocket | null>(null);
   const retryCountRef = useRef(0);
   
-  const { engineUrl, engineAuthToken } = useSettingsStore();
+  const { engineUrl, engineAuthToken, localUserId } = useSettingsStore();
   const { setConnectionStatus, setSessionId, connectionStatus } = useTerminalStore();
+  const { currentProject } = useProjectStore();
 
   const postMessage = useCallback((msg: object) => {
     webviewRef.current?.injectJavaScript(
@@ -43,7 +45,8 @@ export const TerminalScreen: React.FC = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-auth-token': engineAuthToken
+          'x-auth-token': engineAuthToken,
+          'x-user-id': localUserId
         }
       });
       
@@ -53,7 +56,8 @@ export const TerminalScreen: React.FC = () => {
       setSessionId(newSessionId);
       
       // 2. Open WebSocket to Terminal Endpoint
-      const wsUrl = `${engineUrl}/sessions/${newSessionId}/terminal?token=${engineAuthToken}`;
+      const projectParam = currentProject ? `&project=${encodeURIComponent(currentProject.name)}` : '';
+      const wsUrl = `${engineUrl}/sessions/${newSessionId}/terminal?token=${engineAuthToken}&localUserId=${localUserId}${projectParam}`;
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
       

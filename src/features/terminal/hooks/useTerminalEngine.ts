@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useSettingsStore } from '../../../store/useSettingsStore';
 import { useTerminalStore } from '../../../store/useTerminalStore';
+import { useProjectStore } from '../../../store/useProjectStore';
 
 interface UseTerminalEngineProps {
   onOutput: (data: string) => void;
@@ -15,6 +16,7 @@ interface UseTerminalEngineProps {
 export const useTerminalEngine = (props: UseTerminalEngineProps) => {
   const { engineUrl, engineAuthToken, localUserId } = useSettingsStore();
   const { sessionId, setSessionId } = useTerminalStore();
+  const { currentProject } = useProjectStore();
   const socketRef = useRef<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
@@ -47,7 +49,8 @@ export const useTerminalEngine = (props: UseTerminalEngineProps) => {
       }
 
       // 2. Open WebSocket connection
-      const wsUrl = `${engineUrl}/sessions/${activeSessionId}/terminal?token=${engineAuthToken}&localUserId=${localUserId}`;
+      const projectParam = currentProject ? `&project=${encodeURIComponent(currentProject.name)}` : '';
+      const wsUrl = `${engineUrl}/sessions/${activeSessionId}/terminal?token=${engineAuthToken}&localUserId=${localUserId}${projectParam}`;
       const socket = new WebSocket(wsUrl);
       socketRef.current = socket;
 
